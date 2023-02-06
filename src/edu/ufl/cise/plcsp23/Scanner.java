@@ -38,8 +38,9 @@ public class Scanner implements IScanner{
         //return null;//for now
     }
     public void nextchar() throws LexicalException{
-        next();
         pos++;
+        ch = inputChars[pos];
+        next();
     }
 
 
@@ -58,7 +59,7 @@ public class Scanner implements IScanner{
                     tokenStart = pos; //position
 
                     switch(ch) {
-                        case 0 -> {
+                        case 0 -> { //EOF token
                             return new Token(Kind.EOF,tokenStart,0,inputChars);
                         }
                         default -> {
@@ -87,7 +88,6 @@ public class Scanner implements IScanner{
                             state = state.HAVE_EQ;
                             nextchar();
                         }
-
                     }
                 }
 
@@ -119,7 +119,6 @@ public class Scanner implements IScanner{
                 }
 
                 case IN_OP_SEP -> {
-
 
                 }
 
