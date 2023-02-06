@@ -40,8 +40,21 @@ public class Scanner implements IScanner{
     public void nextchar() throws LexicalException{
         pos++;
         ch = inputChars[pos];
-        next();
     }
+
+    //is the variable a digit
+    private boolean isDigit(int ch){
+
+        return '0' <= ch && ch <= '9';
+    }
+
+    //is the variable a Letter
+    private boolean isLetter(int ch){
+
+        return ('a' <= ch && ch <= 'z') || ('A' <= ch &&  ch <= 'Z');
+    }
+
+
 
 
     private Token scanToken() throws LexicalException{
@@ -59,7 +72,7 @@ public class Scanner implements IScanner{
                     tokenStart = pos; //position
 
                     switch(ch) {
-                        case 0 -> { //EOF token
+                        case 0 -> {
                             return new Token(Kind.EOF,tokenStart,0,inputChars);
                         }
                         default -> {
@@ -88,6 +101,13 @@ public class Scanner implements IScanner{
                             state = state.HAVE_EQ;
                             nextchar();
                         }
+
+                        case '1','2','3','4','5','6','7','8','9' -> {
+
+                            state = State.IN_NUM_LIT;
+                            nextchar();
+                        }
+
                     }
                 }
 
@@ -106,6 +126,16 @@ public class Scanner implements IScanner{
 
                 case IN_NUM_LIT -> {
 
+                    if(isDigit(ch)){
+
+                        nextchar();
+                    }
+                    else{
+
+                        int length = pos - tokenStart;
+                        return new Token(Kind.NUM_LIT,tokenStart,length,inputChars);
+                    }
+
 
                 }
 
@@ -119,6 +149,7 @@ public class Scanner implements IScanner{
                 }
 
                 case IN_OP_SEP -> {
+
 
                 }
 
