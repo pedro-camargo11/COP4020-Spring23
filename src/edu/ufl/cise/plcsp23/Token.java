@@ -1,3 +1,5 @@
+package edu.ufl.cise.plcsp23;
+
 import edu.ufl.cise.plcsp23.IToken.SourceLocation;
 
 public class Token implements IToken{
@@ -9,7 +11,7 @@ public class Token implements IToken{
 
     public Token (Kind kind, int tokenStart, int tokenLen, char[] input)
     {
-        this.Kind = kind;
+        this.kind = kind;
         this.tokenStart = tokenStart;
         this.tokenLen = tokenLen;
         inputChars = input;
@@ -26,8 +28,9 @@ public class Token implements IToken{
         return tokenStr.substring(tokenStart, tokenLen);
     }
 
-    public getSourceLocation ()
+    public SourceLocation getSourceLocation ()
     {
-        return SourceLocation;
+        return null;//for now
+        //return SourceLocation;
     }
 }

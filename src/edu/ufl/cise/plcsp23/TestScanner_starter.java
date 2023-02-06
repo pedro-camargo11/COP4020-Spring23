@@ -94,6 +94,12 @@ class TestScanner_starter {
 		checkToken(Kind.EOF, t);
 	}
 
+	@Test
+	void EOFTest() throws LexicalException{
+		char[] arr= {};
+		Token t = new Token (Kind.EOF, 1,1,arr);
+		checkEOF(t);
+	}
 
 	@Test
 	void emptyProg() throws LexicalException {

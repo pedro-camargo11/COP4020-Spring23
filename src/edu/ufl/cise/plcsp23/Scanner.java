@@ -1,3 +1,7 @@
+package edu.ufl.cise.plcsp23;
+import edu.ufl.cise.plcsp23.IToken.Kind;
+import java.util.Arrays;
+
 import edu.ufl.cise.plcsp23.LexicalException;
 
 public class Scanner implements IScanner{
@@ -25,13 +29,17 @@ public class Scanner implements IScanner{
         //creates an array of chars from input string with an extra 0 on the end.
         inputChars = Arrays.copyOf(input.toCharArray(), input.length()+1); 
         pos = 0;
-        ch= inputChar[pos];
+        ch= inputChars[pos];
     }
 
     @Override
     public Token next() throws LexicalException{
-        scanToken();
+        //scanToken();
+        return null;//for now
     }
+
+    public void nextchar(){}
+
 
     private Token scanToken() throws LexicalException{
 
@@ -49,7 +57,7 @@ public class Scanner implements IScanner{
 
                     switch(ch) {
                         case 0 -> {
-                            return new Token(EOF,tokenStart,0,inputChars);
+                            return new Token(Kind.EOF,tokenStart,0,inputChars);
                         }
                         default -> {
                             throw new UnsupportedOperationException("Not implemented yet");
@@ -60,17 +68,17 @@ public class Scanner implements IScanner{
                         
                         case '+' -> {
                             nextchar();
-                            return new Token(PLUS, tokenStart, 1, inputChars);
+                            return new Token(Kind.PLUS, tokenStart, 1, inputChars);
                         }
 
                         case '*' -> {
                             nextchar();
-                            return new Token(TIMES, tokenstart, 1, inputChars);
+                            return new Token(Kind.TIMES, tokenStart, 1, inputChars);
                         }
 
                         case '0' -> {
                             nextchar();
-                            return new Token(Num_LIT,tokenStart,1,inputChars);
+                            return new Token(Kind.NUM_LIT,tokenStart,1,inputChars);
 
                         }
 
@@ -86,11 +94,11 @@ public class Scanner implements IScanner{
                     if(ch == '='){
                         state = state.START;
                         nextchar();
-                        return new Token(EQ, tokenstart, 2, inputchars);
+                        return new Token(Kind.EQ, tokenStart, 2, inputChars);
                     }
                     else{
                         
-                        error("expected=");
+                        //error("expected=");
 
                     }
                 }
