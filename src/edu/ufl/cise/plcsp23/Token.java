@@ -31,6 +31,6 @@ public class Token implements IToken{
     public SourceLocation getSourceLocation ()
     {
         return null;//for now
-        //return SourceLocation;
+        //return SourceLocation()
     }
 }

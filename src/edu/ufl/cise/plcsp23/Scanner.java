@@ -34,11 +34,13 @@ public class Scanner implements IScanner{
 
     @Override
     public Token next() throws LexicalException{
-        //scanToken();
-        return null;//for now
+        return scanToken();
+        //return null;//for now
     }
-
-    public void nextchar(){}
+    public void nextchar() throws LexicalException{
+        next();
+        pos++;
+    }
 
 
     private Token scanToken() throws LexicalException{
@@ -79,7 +81,6 @@ public class Scanner implements IScanner{
                         case '0' -> {
                             nextchar();
                             return new Token(Kind.NUM_LIT,tokenStart,1,inputChars);
-
                         }
 
                         case '=' -> {
