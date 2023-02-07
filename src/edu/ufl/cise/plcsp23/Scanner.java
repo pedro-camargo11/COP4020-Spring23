@@ -79,7 +79,7 @@ public class Scanner implements IScanner{
                             throw new UnsupportedOperationException("Not implemented yet");
                         }
                         
-                        //we want to check if there is any white space at the beginning
+                        //ignore whitespace
                         case ' ', '\n', '\r', '\t', '\f' -> nextchar();
                         
                         case '+' -> {
@@ -118,9 +118,7 @@ public class Scanner implements IScanner{
                         return new Token(Kind.EQ, tokenStart, 2, inputChars);
                     }
                     else{
-                        
                         //error("expected=");
-
                     }
                 }
 
