@@ -131,7 +131,8 @@ public class Scanner implements IScanner{
                     else{
 
                         int length = pos - tokenStart;
-                        return new Token(Kind.NUM_LIT,tokenStart,length,inputChars);
+                        //return new Token(Kind.NUM_LIT,tokenStart,length,inputChars);
+                        return new NumLitToken(tokenStart, length, inputChars);
                     }
 
 
