@@ -72,14 +72,14 @@ public class Scanner implements IScanner{
                     tokenStart = pos; //position
 
                     switch(ch) {
-                        case 0 -> {
+                        case 0 -> { //EOF token
                             return new Token(Kind.EOF,tokenStart,0,inputChars);
                         }
                         default -> {
                             throw new UnsupportedOperationException("Not implemented yet");
                         }
                         
-                        //we want to check if there is any white space at the beginning
+                        //ignore whitespace
                         case ' ', '\n', '\r', '\t', '\f' -> nextchar();
                         
                         case '+' -> {
@@ -118,9 +118,7 @@ public class Scanner implements IScanner{
                         return new Token(Kind.EQ, tokenStart, 2, inputChars);
                     }
                     else{
-                        
                         //error("expected=");
-
                     }
                 }
 
