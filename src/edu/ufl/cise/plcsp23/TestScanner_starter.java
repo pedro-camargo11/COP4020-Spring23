@@ -122,6 +122,7 @@ class TestScanner_starter {
 				123
 				05 240
 				""";
+		System.out.println(input.length());
 		IScanner scanner = CompilerComponentFactory.makeScanner(input);
 		checkNUM_LIT(123, scanner.next());
 		checkNUM_LIT(0, scanner.next());

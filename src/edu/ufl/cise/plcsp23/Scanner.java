@@ -34,7 +34,7 @@ public class Scanner implements IScanner{
     }
 
     @Override
-    public Token next() throws LexicalException{
+    public IToken next() throws LexicalException{
         return scanToken();
         //return null;//for now
     }
@@ -58,7 +58,7 @@ public class Scanner implements IScanner{
 
 
 
-    private Token scanToken() throws LexicalException{
+    private IToken scanToken() throws LexicalException{
 
         State state = State.START;
         int tokenStart = -1;
@@ -95,7 +95,7 @@ public class Scanner implements IScanner{
 
                         case '0' -> {
                             nextchar();
-                            return new Token(Kind.NUM_LIT,tokenStart,1,inputChars);
+                            return new NumLitToken(tokenStart, 1, inputChars);
                         }
 
                         case '=' -> {
@@ -165,8 +165,8 @@ public class Scanner implements IScanner{
                         nextchar();
                     }
 
-                    int length = pos - tokenStart;
-                    return new StringLitToken(tokenStart, length, inputChars);
+                    int numLitLen = pos - tokenStart;
+                    return new StringLitToken(tokenStart, numLitLen, inputChars);
 
                 }
 
