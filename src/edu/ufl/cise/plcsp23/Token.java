@@ -8,6 +8,8 @@ public class Token implements IToken{
     int tokenStart;
     int tokenLen;
     char[] inputChars;
+    int col = 0;
+    int line = 0;
 
     public Token (Kind kind, int tokenStart, int tokenLen, char[] input)
     {
@@ -30,7 +32,6 @@ public class Token implements IToken{
 
     public SourceLocation getSourceLocation ()
     {
-        return null;//for now
-        //return SourceLocation()
+        return new SourceLocation(line, col);
     }
 }
