@@ -26,8 +26,9 @@ public class Token implements IToken{
 
     public String getTokenString()
     {
-        String tokenStr= inputChars.toString();
-        return tokenStr.substring(tokenStart, tokenLen);
+        //String tokenStr= inputChars.toString();
+        String tokenStr = new String(inputChars);
+        return tokenStr.substring(tokenStart,tokenStart+tokenLen);
     }
 
     public SourceLocation getSourceLocation ()

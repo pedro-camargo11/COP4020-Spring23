@@ -11,7 +11,7 @@ public class NumLitToken extends Token implements INumLitToken { //remove abstra
     public int getValue(){
         int value = 0;
         // convert the token to a string. Convert string to int
-        value = parseInt(getTokenString());
+        value = parseInt(this.getTokenString());
         return value;
     }
 
