@@ -152,7 +152,17 @@ public class Scanner implements IScanner{
 
                         int length = pos - tokenStart;
                         //return new Token(Kind.NUM_LIT,tokenStart,length,inputChars);
-                        return new NumLitToken(tokenStart, length, inputChars);
+
+                        try {
+
+                           NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars);
+                           NumLit.getValue(); //check val
+                           return NumLit;
+                        }
+                        catch(NumberFormatException a){
+
+                            throw new LexicalException("Int is too large to be parsed");
+                        }
                     }
 
 
