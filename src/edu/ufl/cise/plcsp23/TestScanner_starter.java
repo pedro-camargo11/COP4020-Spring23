@@ -140,7 +140,6 @@ class TestScanner_starter {
 		});
 	}
 
-
 	@Test
 	void identsAndReserved() throws LexicalException {
 		String input = """

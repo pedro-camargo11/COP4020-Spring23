@@ -1,6 +1,7 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.regex.*;
 
 import edu.ufl.cise.plcsp23.LexicalException;
@@ -12,6 +13,38 @@ public class Scanner implements IScanner{
 
     int pos; //position of char
     char ch; //next char
+
+    //set including all the keywords
+    private static HashMap<String, Kind> reservedWords;
+    static{
+        reservedWords = new HashMap<String, Kind>();
+        reservedWords.put("image", Kind.RES_image);
+        reservedWords.put("pixel", Kind.RES_pixel);
+        reservedWords.put("int", Kind.RES_int);
+        reservedWords.put("string", Kind.RES_string);
+        reservedWords.put("void", Kind.RES_void);
+        reservedWords.put("nil", Kind.RES_nil);
+        reservedWords.put("load", Kind.RES_load);
+        reservedWords.put("display", Kind.RES_display);
+        reservedWords.put("write", Kind.RES_write);
+        reservedWords.put("x", Kind.RES_x);
+        reservedWords.put("y", Kind.RES_y);
+        reservedWords.put("a", Kind.RES_a);
+        reservedWords.put("X", Kind.RES_X);
+        reservedWords.put("Y", Kind.RES_Y);
+        reservedWords.put("Z", Kind.RES_Z);
+        reservedWords.put("x_cart", Kind.RES_x_cart);
+        reservedWords.put("y_cart", Kind.RES_y_cart);
+        reservedWords.put("a_polar", Kind.RES_a_polar);
+        reservedWords.put("r_polar", Kind.RES_r_polar);
+        reservedWords.put("rand", Kind.RES_rand);
+        reservedWords.put("sin", Kind.RES_sin);
+        reservedWords.put("cos", Kind.RES_cos);
+        reservedWords.put("atan", Kind.RES_atan);
+        reservedWords.put("if", Kind.RES_if);
+        reservedWords.put("while", Kind.RES_while);
+    }
+
 
     //define enum for internal states
     private enum State {
@@ -111,19 +144,19 @@ public class Scanner implements IScanner{
 
                         case 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z' -> {
 
-                            state = State.IN_STR_LIT;
+                            state = State.IN_IDENT;
                             nextchar();
                         }
 
                         case 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z' -> {
 
-                            state = State.IN_STR_LIT;
+                            state = State.IN_IDENT;
                             nextchar();
                         }
 
                         case '_' -> {
 
-                            state = State.IN_STR_LIT;
+                            state = State.IN_IDENT;
                             nextchar();
                         }
 
@@ -170,17 +203,28 @@ public class Scanner implements IScanner{
 
                 case IN_STR_LIT -> {
 
-                    if(isDigit(ch) || isLetter((ch)) || ch == '_'){
-
-                        nextchar();
-                    }
-
-                    int numLitLen = pos - tokenStart;
-                    return new StringLitToken(tokenStart, numLitLen, inputChars);
-
                 }
 
                 case IN_IDENT -> {
+                    if(isDigit(ch) || isLetter((ch)) || ch == '_'){
+                        nextchar();
+                    }
+                    else{
+                        int length = pos - tokenStart;
+                        String tokenString = new String (inputChars);
+                        tokenString = tokenString.substring(tokenStart, tokenStart+length);
+                        //check if token is a reserved word
+                        if (reservedWords.containsKey(tokenString))
+                        {
+                            //gets the kind of the reserved word from the map
+                            Kind k = reservedWords.get(tokenString);
+                            return new Token(k, tokenStart, length, inputChars);
+                        }
+                        else {
+                            //the token is not a reserved word so it is an ident
+                            return new Token(Kind.IDENT, tokenStart, length, inputChars);
+                        }
+                    }
 
                 }
 
