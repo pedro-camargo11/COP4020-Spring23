@@ -1,6 +1,7 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.Arrays;
+import java.util.regex.*;
 
 import edu.ufl.cise.plcsp23.LexicalException;
 
@@ -72,7 +73,7 @@ public class Scanner implements IScanner{
                     tokenStart = pos; //position
 
                     switch(ch) {
-                        case 0 -> { //EOF token
+                        case 0 -> {
                             return new Token(Kind.EOF,tokenStart,0,inputChars);
                         }
                         default -> {
@@ -108,6 +109,25 @@ public class Scanner implements IScanner{
                             nextchar();
                         }
 
+                        case 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z' -> {
+
+                            state = State.IN_STR_LIT;
+                            nextchar();
+                        }
+
+                        case 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z' -> {
+
+                            state = State.IN_STR_LIT;
+                            nextchar();
+                        }
+
+                        case '_' -> {
+
+                            state = State.IN_STR_LIT;
+                            nextchar();
+                        }
+
+
                     }
                 }
 
@@ -140,6 +160,13 @@ public class Scanner implements IScanner{
 
                 case IN_STR_LIT -> {
 
+                    if(isDigit(ch) || isLetter((ch)) || ch == '_'){
+
+                        nextchar();
+                    }
+
+                    int length = pos - tokenStart;
+                    return new StringLitToken(tokenStart, length, inputChars);
 
                 }
 
