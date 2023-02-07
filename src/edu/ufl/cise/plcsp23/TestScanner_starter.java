@@ -1,11 +1,11 @@
 /*Copyright 2023 by Beverly A Sanders
- * 
- * This code is provided for solely for use of students in COP4020 Programming Language Concepts at the 
- * University of Florida during the spring semester 2023 as part of the course project.  
- * 
- * No other use is authorized. 
- * 
- * This code may not be posted on a public web site either during or after the course.  
+ *
+ * This code is provided for solely for use of students in COP4020 Programming Language Concepts at the
+ * University of Florida during the spring semester 2023 as part of the course project.
+ *
+ * No other use is authorized.
+ *
+ * This code may not be posted on a public web site either during or after the course.
  */
 
 package edu.ufl.cise.plcsp23;
@@ -37,7 +37,7 @@ class TestScanner_starter {
 	void checkToken(Kind expectedKind, IToken t) {
 		assertEquals(expectedKind, t.getKind());
 	}
-	
+
 	void checkToken(Kind expectedKind, String expectedChars, SourceLocation expectedLocation, IToken t) {
 		assertEquals(expectedKind, t.getKind());
 		assertEquals(expectedChars, t.getTokenString());
@@ -68,7 +68,7 @@ class TestScanner_starter {
 		int value = ((INumLitToken) t).getValue();
 		assertEquals(expectedValue, value);
 	}
-	
+
 	void checkNUM_LIT(int expectedValue, SourceLocation expectedLocation, IToken t) {
 		checkToken(Kind.NUM_LIT, t);
 		int value = ((INumLitToken) t).getValue();
@@ -129,9 +129,9 @@ class TestScanner_starter {
 		checkNUM_LIT(240, scanner.next());
 		checkEOF(scanner.next());
 	}
-	
+
 	@Test
-	//Too large should still throw LexicalException
+		//Too large should still throw LexicalException
 	void numLitTooBig() throws LexicalException {
 		String input = "999999999999999999999";
 		IScanner scanner = CompilerComponentFactory.makeScanner(input);
@@ -151,12 +151,12 @@ class TestScanner_starter {
 		IScanner scanner = CompilerComponentFactory.makeScanner(input);
 		checkToken(Kind.IDENT,"i0", new SourceLocation(1,1), scanner.next());
 		checkToken(Kind.IDENT, "i1",new SourceLocation(2,3), scanner.next());
-		checkToken(Kind.RES_x, "x", new SourceLocation(2,7), scanner.next());		
+		checkToken(Kind.RES_x, "x", new SourceLocation(2,7), scanner.next());
 		checkToken(Kind.RES_y, "y", new SourceLocation(3,1), scanner.next());
 		checkToken(Kind.RES_Y, "Y", new SourceLocation(3,3), scanner.next());
 		checkEOF(scanner.next());
 	}
-	
+
 
 	@Test
 	void operators0() throws LexicalException {
@@ -208,7 +208,7 @@ class TestScanner_starter {
 			scanner.next();
 		});
 	}
-	
+
 	@Test
 	void illegalLineTermInStringLiteral() throws LexicalException {
 		String input = """
@@ -230,7 +230,7 @@ class TestScanner_starter {
 				""";
 		checkTokens(input, Kind.EXCHANGE, Kind.GT, Kind.GT, Kind.GE, Kind.LT, Kind.LE, Kind.LT, Kind.EOF);
 	}
-	
+
 	/** The Scanner should not backtrack so this input should throw an exception */
 	@Test
 	void incompleteExchangeThrowsException() throws LexicalException {
@@ -238,7 +238,7 @@ class TestScanner_starter {
 		IScanner scanner = CompilerComponentFactory.makeScanner(input);
 		assertThrows(LexicalException.class, () -> {
 			scanner.next();
-		});	
+		});
 	}
 
 	@Test

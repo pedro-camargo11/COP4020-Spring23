@@ -2,7 +2,6 @@ package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.regex.*;
 
 import edu.ufl.cise.plcsp23.LexicalException;
 
@@ -13,6 +12,10 @@ public class Scanner implements IScanner{
 
     int pos; //position of char
     char ch; //next char
+
+    //if the character is a newline increment line, set col to 0
+    int line = 1;
+    int col = 1;
 
     //set including all the keywords
     private static HashMap<String, Kind> reservedWords;
@@ -48,12 +51,13 @@ public class Scanner implements IScanner{
 
     //define enum for internal states
     private enum State {
-        START, 
+        START,
         HAVE_EQ,
         IN_IDENT,
         IN_NUM_LIT,
         IN_OP_SEP,
-        IN_STR_LIT
+        IN_STR_LIT,
+        IN_COMMENT
     }
 
     //constructor
@@ -61,9 +65,10 @@ public class Scanner implements IScanner{
     {
         this.input = input;
         //creates an array of chars from input string with an extra 0 on the end.
-        inputChars = Arrays.copyOf(input.toCharArray(), input.length()+1); 
+        inputChars = Arrays.copyOf(input.toCharArray(), input.length()+1);
         pos = 0;
         ch= inputChars[pos];
+
     }
 
     @Override
@@ -72,6 +77,17 @@ public class Scanner implements IScanner{
         //return null;//for now
     }
     public void nextchar() throws LexicalException{
+
+        //update the position of the line,col
+        if(ch != '\n'){
+
+            col++;
+        }
+        else{
+            col = 0;
+            line++;
+        }
+
         pos++;
         ch = inputChars[pos];
     }
@@ -95,14 +111,14 @@ public class Scanner implements IScanner{
 
         State state = State.START;
         int tokenStart = -1;
-        
-        //read the characters 
+
+        //read the characters
         while(true){
-            
+
             switch(state){
 
                 case START -> {
-                    
+
                     tokenStart = pos; //position
 
                     switch(ch) {
@@ -112,10 +128,10 @@ public class Scanner implements IScanner{
                         default -> {
                             throw new UnsupportedOperationException("Not implemented yet");
                         }
-                        
+
                         //ignore whitespace
                         case ' ', '\n', '\r', '\t', '\f' -> nextchar();
-                        
+
                         case '+' -> {
                             nextchar();
                             return new Token(Kind.PLUS, tokenStart, 1, inputChars);
@@ -160,6 +176,12 @@ public class Scanner implements IScanner{
                             nextchar();
                         }
 
+                        case '~' ->{
+
+                            state = State.IN_COMMENT;
+                            nextchar();
+                        }
+
 
                     }
                 }
@@ -188,9 +210,9 @@ public class Scanner implements IScanner{
 
                         try {
 
-                           NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars);
-                           NumLit.getValue(); //check val
-                           return NumLit;
+                            NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars);
+                            NumLit.getValue(); //check val
+                            return NumLit;
                         }
                         catch(NumberFormatException a){
 
@@ -203,6 +225,21 @@ public class Scanner implements IScanner{
 
                 case IN_STR_LIT -> {
 
+                }
+
+                //when we encounter a '~" and end with newline '\n'
+                case IN_COMMENT -> {
+
+                    //check for '\r'
+                    if( ch != '\n'){
+
+                        nextchar();
+
+                    }
+                    else{
+
+                        state = State.START;
+                    }
                 }
 
                 case IN_IDENT -> {
