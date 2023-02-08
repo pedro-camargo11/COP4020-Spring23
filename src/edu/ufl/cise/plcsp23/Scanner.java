@@ -36,6 +36,7 @@ public class Scanner implements IScanner{
         reservedWords.put("X", Kind.RES_X);
         reservedWords.put("Y", Kind.RES_Y);
         reservedWords.put("Z", Kind.RES_Z);
+        reservedWords.put("r",Kind.RES_r);
         reservedWords.put("x_cart", Kind.RES_x_cart);
         reservedWords.put("y_cart", Kind.RES_y_cart);
         reservedWords.put("a_polar", Kind.RES_a_polar);
@@ -60,7 +61,10 @@ public class Scanner implements IScanner{
         IN_COMMENT,
         HAVE_GE,
         HAVE_LE,
-        HAVE_EXCHANGE
+        HAVE_EXCHANGE,
+        HAVE_OR,
+        HAVE_AND,
+        HAVE_EXP
     }
 
     //constructor
@@ -119,6 +123,7 @@ public class Scanner implements IScanner{
             {
                 return true;
             }
+
         }
         return false;
     }
@@ -157,13 +162,13 @@ public class Scanner implements IScanner{
                         }
 
                         case '*' -> {
+                            state = state.HAVE_EXP;
                             nextchar();
-                            return new Token(Kind.TIMES, tokenStart, 1, inputChars,line,col);
                         }
 
-                        case '0' -> {
+                        case '-' -> {
                             nextchar();
-                            return new NumLitToken(tokenStart, 1, inputChars,line,col);
+                            return new Token(Kind.MINUS, tokenStart, 1, inputChars,line,col);
                         }
 
                         case '=' -> {
@@ -174,6 +179,93 @@ public class Scanner implements IScanner{
                         case '/' -> {
                             nextchar();
                             return new Token(Kind.DIV,tokenStart,1,inputChars,line,col);
+                        }
+
+                        case '%' -> {
+                            nextchar();
+                            return new Token(Kind.MOD,tokenStart,1,inputChars,line,col);
+                        }
+
+                        case '0' -> {
+                            nextchar();
+                            return new NumLitToken(tokenStart, 1, inputChars,line,col);
+                        }
+
+                        case '!' -> {
+
+                            nextchar();
+                            return new Token(Kind.BANG, tokenStart,1,inputChars,line,col);
+                        }
+
+                        case '?' -> {
+
+                            nextchar();
+                            return new Token(Kind.QUESTION,tokenStart,1,inputChars,line,col);
+                        }
+
+                        case '.' -> {
+
+                            nextchar();
+                            return new Token(Kind.DOT,tokenStart,1,inputChars,line,col);
+                        }
+
+                        case ':' -> {
+
+                            nextchar();
+                            return new Token(Kind.COLON, tokenStart, 1,inputChars,line,col);
+                        }
+
+                        case ',' -> {
+                            nextchar();
+                            return new Token(Kind.COMMA, tokenStart,1,inputChars,line,col);
+                        }
+
+                        case '(' -> {
+
+                            nextchar();
+                            return new Token(Kind.LPAREN, tokenStart, 1, inputChars, line, col);
+                        }
+
+                        case ')' -> {
+
+                            nextchar();
+                            return new Token(Kind.RPAREN, tokenStart, 1, inputChars, line, col);
+                        }
+
+                        case '{' -> {
+
+                            nextchar();
+                            return new Token(Kind.LCURLY, tokenStart, 1, inputChars, line, col);
+                        }
+
+                        case '}' -> {
+
+                            nextchar();
+                            return new Token(Kind.RCURLY, tokenStart, 1, inputChars, line, col);
+                        }
+
+                        case '[' -> {
+
+                            nextchar();
+                            return new Token(Kind.LSQUARE, tokenStart, 1, inputChars, line, col);
+                        }
+
+                        case ']' -> {
+
+                            nextchar();
+                            return new Token(Kind.RSQUARE, tokenStart, 1, inputChars, line, col);
+                        }
+
+                        case '&' -> {
+
+                            state = state.HAVE_AND;
+                            nextchar();
+                        }
+
+                        case '|' -> {
+
+                            state = state.HAVE_OR;
+                            nextchar();
                         }
 
                         case '>' -> {
@@ -192,6 +284,8 @@ public class Scanner implements IScanner{
                             state = state.IN_STR_LIT;
                             nextchar();
                         }
+
+
 
                         case '1','2','3','4','5','6','7','8','9' -> {
 
@@ -295,6 +389,51 @@ public class Scanner implements IScanner{
                     else{
 
                         throw new LexicalException("exchange does not work");
+                    }
+                }
+
+                case HAVE_AND -> {
+
+                    if (ch == '&'){
+
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.AND,tokenStart,2,inputChars,line,col);
+                    }
+                    else{
+
+                        state = state.START;
+                        return new Token(Kind.BITAND,tokenStart,1,inputChars,line,col);
+                    }
+                }
+
+                case HAVE_OR -> {
+
+                    if (ch == '|'){
+
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.OR,tokenStart,2,inputChars,line,col);
+                    }
+                    else{
+
+                        state = state.START;
+                        return new Token(Kind.BITOR,tokenStart,1,inputChars,line,col);
+                    }
+                }
+
+                case HAVE_EXP -> {
+
+                    if (ch == '*'){
+
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.EXP,tokenStart,2,inputChars,line,col);
+                    }
+                    else{
+
+                        state = state.START;
+                        return new Token(Kind.TIMES,tokenStart,1,inputChars,line,col);
                     }
                 }
 
