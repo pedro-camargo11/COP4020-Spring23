@@ -56,7 +56,6 @@ public class Scanner implements IScanner{
         HAVE_EQ,
         IN_IDENT,
         IN_NUM_LIT,
-        IN_OP_SEP,
         IN_STR_LIT,
         IN_COMMENT,
         HAVE_GE,
