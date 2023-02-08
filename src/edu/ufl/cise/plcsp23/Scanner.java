@@ -512,11 +512,7 @@ public class Scanner implements IScanner{
 
                 }
 
-                case IN_OP_SEP -> {
-
-
-                }
-
+        
                 default -> {
                     throw new UnsupportedOperationException("Bugs in Scanner");
                 }
