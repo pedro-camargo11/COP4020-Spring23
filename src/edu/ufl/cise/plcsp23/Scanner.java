@@ -500,7 +500,7 @@ public class Scanner implements IScanner{
                     if( ch != '\r' && ch !='\n')
                     {
 
-                        nextchar();
+                          nextchar();
 
                     }
                     //edge case if we encounter EOF in text block
