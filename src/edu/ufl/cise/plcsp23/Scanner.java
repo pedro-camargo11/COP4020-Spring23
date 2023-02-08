@@ -108,12 +108,13 @@ public class Scanner implements IScanner{
         return ('a' <= ch && ch <= 'z') || ('A' <= ch &&  ch <= 'Z');
     }
 
-    private void error(String message){
-
-        System.out.println(message);
+    //helper function for determining whether a character is a string character. (used for StringLit)
+    private boolean isStringCharacter (int ch){
+        if (ch != '"' && ch != 92){ //valid string character cannot be " or \ (\ is 92 in ascii)
+            return true;
+        }
+        return false;
     }
-
-
 
     private IToken scanToken() throws LexicalException{
 
@@ -175,6 +176,11 @@ public class Scanner implements IScanner{
                             state = state.HAVE_LE;
                             nextchar();
 
+                        }
+
+                        case '"' -> {
+                            state = state.IN_STR_LIT;
+                            nextchar();
                         }
 
                         case '1','2','3','4','5','6','7','8','9' -> {
@@ -309,7 +315,16 @@ public class Scanner implements IScanner{
                 }
 
                 case IN_STR_LIT -> {
-
+                    //check to see if the character is a valid input character
+                    if (isStringCharacter(ch)){
+                        nextchar();
+                    }
+                    else {
+                        nextchar(); //increment pos and ch to skip to include the closing quotation
+                        int length = pos - tokenStart;
+                        StringLitToken StringLit = new StringLitToken(tokenStart, length, inputChars);
+                        return StringLit;
+                    }
                 }
 
                 //when we encounter a '~" and end with newline '\n'
