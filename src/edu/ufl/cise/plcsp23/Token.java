@@ -35,6 +35,7 @@ public class Token implements IToken{
 
     public SourceLocation getSourceLocation ()
     {
-        return new SourceLocation(line, col-tokenLen);
+        return new SourceLocation(line, col);
+        //don't know if col-tokenLen logic is correct, but col is supposed to return index of first token char
     }
 }

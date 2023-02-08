@@ -83,11 +83,7 @@ public class Scanner implements IScanner{
     public void nextchar() throws LexicalException{
 
         //update the position of the line,col
-        if(ch != '\n'){
-
-            col++;
-        }
-        else{
+        if(ch == '\n'){
             col = 0;
             line++;
         }
@@ -113,8 +109,18 @@ public class Scanner implements IScanner{
         if (ch != '"' && ch != 92){ //valid string character cannot be " or \ (\ is 92 in ascii)
             return true;
         }
+        //if \ is followed by b, t, ", or \ it is a legal string character.
+        if (pos != inputChars.length-1){ //makes sure that pos doesn't point to last index in inputChars
+            int next = inputChars[pos+1];
+            if (next == 'b' || next == '"' || next == 't' || next == 92) //92 corresponds to \ in ascii
+            {
+                return true;
+            }
+        }
         return false;
     }
+
+
 
     private IToken scanToken() throws LexicalException{
 
@@ -129,6 +135,7 @@ public class Scanner implements IScanner{
                 case START -> {
 
                     tokenStart = pos; //position
+                    col++;
 
                     switch(ch) {
                         case 0 -> {
