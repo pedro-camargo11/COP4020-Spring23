@@ -196,14 +196,14 @@ class TestScanner_starter {
 				"\\""
 				""";
 		IScanner scanner = CompilerComponentFactory.makeScanner(input);
-		IToken t = scanner.next(); //"hello"
-		t = scanner.next(); //"\t"
-		t = scanner.next(); //"\"" --> currently not working
-		t = scanner.next(); //EOF
-		//checkString(input.substring(0, 7),"hello", new SourceLocation(1,1), scanner.next());
-		//checkString(input.substring(8, 11), "\t", new SourceLocation(2,1), scanner.next());
-		//checkString(input.substring(12, 16), "\"",  new SourceLocation(3,1), scanner.next());
-		//checkEOF(scanner.next());
+//		IToken t = scanner.next(); //"hello"
+//		t = scanner.next(); //"\t"
+//		t = scanner.next(); //"\"" --> currently not working
+//		t = scanner.next(); //EOF
+		checkString(input.substring(0, 7),"hello", new SourceLocation(1,1), scanner.next());
+		checkString(input.substring(8, 11), "\t", new SourceLocation(2,1), scanner.next());
+		checkString(input.substring(12, 16), "\"",  new SourceLocation(3,1), scanner.next());
+		checkEOF(scanner.next());
 	}
 
 

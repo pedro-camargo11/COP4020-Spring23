@@ -21,9 +21,6 @@ public class NumLitToken extends Token implements INumLitToken { //remove abstra
         value = parseInt(this.getTokenString());
         return value;
 
-
-
-
     }
 
 
