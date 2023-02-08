@@ -58,8 +58,8 @@ public class Scanner implements IScanner{
         IN_OP_SEP,
         IN_STR_LIT,
         IN_COMMENT,
-        HAVE_GQ,
-        HAVE_LQ,
+        HAVE_GE,
+        HAVE_LE,
         HAVE_EXCHANGE
     }
 
@@ -166,13 +166,13 @@ public class Scanner implements IScanner{
                         }
 
                         case '>' -> {
-                            state = state.HAVE_GQ;
+                            state = state.HAVE_GE;
                             nextchar();
                         }
 
                         case '<' -> {
 
-                            state = state.HAVE_LQ;
+                            state = state.HAVE_LE;
                             nextchar();
 
                         }
@@ -225,7 +225,7 @@ public class Scanner implements IScanner{
                     }
                 }
 
-                case HAVE_GQ -> {
+                case HAVE_GE -> {
 
                     if(ch == '=' ){
                         state = state.START;
@@ -243,7 +243,7 @@ public class Scanner implements IScanner{
                     }
                 }
 
-                case HAVE_LQ -> {
+                case HAVE_LE -> {
 
                     if(ch == '='){
                         state = state.START;
@@ -279,7 +279,7 @@ public class Scanner implements IScanner{
                     }
                     else{
 
-                        error("This token does not work");
+                        throw new LexicalException("exchange does not work");
                     }
                 }
 
