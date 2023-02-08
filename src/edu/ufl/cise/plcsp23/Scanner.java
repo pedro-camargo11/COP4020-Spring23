@@ -134,7 +134,7 @@ public class Scanner implements IScanner{
                             return new Token(Kind.EOF,tokenStart,0,inputChars);
                         }
                         default -> {
-                            throw new UnsupportedOperationException("Not implemented yet");
+                            throw new LexicalException("Not implemented yet");
                         }
 
                         //ignore whitespace
@@ -208,6 +208,7 @@ public class Scanner implements IScanner{
                         }
 
 
+
                     }
                 }
 
@@ -219,8 +220,7 @@ public class Scanner implements IScanner{
                     }
                     //if it is followed by anything else, then it is now an assigned token
                     else{
-                        state =state.START;
-                        nextchar();
+                        state = state.START;
                         return new Token(Kind.ASSIGN,tokenStart,1,inputChars);
                     }
                 }
@@ -237,7 +237,6 @@ public class Scanner implements IScanner{
                     else{
 
                         state = state.START;
-                        nextchar();
                         return new Token(Kind.GT,tokenStart,1,inputChars);
 
                     }
@@ -261,8 +260,8 @@ public class Scanner implements IScanner{
                     //return <
                     else{
 
+                        System.out.println(pos);
                         state = state.START;
-                        nextchar();
                         return new Token(Kind.LT,tokenStart,1,inputChars);
 
                     }
@@ -316,10 +315,10 @@ public class Scanner implements IScanner{
                 //when we encounter a '~" and end with newline '\n'
                 case IN_COMMENT -> {
 
-                    //check for '\r'
-                    if( ch != '\n'){
+                    if( ch != '\r'){
 
-                        nextchar();
+                        if(ch != '\n')
+                          nextchar();
 
                     }
                     else{
