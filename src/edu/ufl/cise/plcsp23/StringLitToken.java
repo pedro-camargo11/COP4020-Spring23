@@ -17,17 +17,28 @@ public class StringLitToken extends Token implements IStringLitToken{
         {
             if (str[i] == 92) //92 is \ in ascii
             {
+                i++;
                 //check to see if the next char is part of a legal escape sequence
-                if (i+1 <= str.length){
-                    char next = str[i+1];
-                    if (next == 'b' || next == 't' || next == '"' || next == 92)
+                if (i <= str.length){
+                    char next = str[i];
+                    if (next == 'b' || next == 't' || next == '"' || next == 92 || next == 'n' || next == 'r')
                     {
-                        i++;//skip a character
+                        switch(next){
+
+                            case 'b' -> escapeSequenceStr.add('\b');
+                            case 't' -> escapeSequenceStr.add('\t');
+                            case 'n' -> escapeSequenceStr.add('\n');
+                            case 'r' -> escapeSequenceStr.add('\r');
+                            case '"' -> escapeSequenceStr.add('"');
+                            case '\\' -> escapeSequenceStr.add('\\');
+                        }
                     }
                 }
             }
-            char c = str[i];
-            escapeSequenceStr.add(c);
+            else {
+                char c = str[i];
+                escapeSequenceStr.add(c);
+            }
         }
         String finalValue = "";
         for (int i = 0; i< escapeSequenceStr.size() ; i++)
