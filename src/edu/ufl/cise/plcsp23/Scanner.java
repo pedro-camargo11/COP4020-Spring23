@@ -81,7 +81,7 @@ public class Scanner implements IScanner{
     @Override
     public IToken next() throws LexicalException{
         return scanToken();
-        //return null;//for now
+
     }
     //miscounted pos
     public void nextchar() throws LexicalException{
@@ -458,8 +458,12 @@ public class Scanner implements IScanner{
                 case IN_STR_LIT -> {
 
                     //check to see if the character is a valid input character
-
-                    if (ch == '\n' || ch == '\r')
+                    if (ch == '"') {
+                        nextchar();
+                        int length = pos - tokenStart;
+                        return new StringLitToken(tokenStart, length, inputChars,line,col);
+                    }
+                    else if (ch == '\n' || ch == '\r')
                     {
                         throw new LexicalException("Invalid input sequence");
                     }
@@ -470,9 +474,7 @@ public class Scanner implements IScanner{
                     }
                     else
                     {
-                        nextchar(); //increment pos and ch to skip to include the closing quotation
-                        int length = pos - tokenStart;
-                        return new StringLitToken(tokenStart, length, inputChars,line,col);
+                        nextchar();
                     }
                 }
 
@@ -498,7 +500,7 @@ public class Scanner implements IScanner{
                     if( ch != '\r' && ch !='\n')
                     {
 
-                          nextchar();
+                        nextchar();
 
                     }
                     //edge case if we encounter EOF in text block

@@ -20,7 +20,7 @@ public class Token implements IToken{
         this.col= col;
         this.line = line;
     }
-    
+
     public Kind getKind()
     {
         return kind;
@@ -28,7 +28,7 @@ public class Token implements IToken{
 
     public String getTokenString()
     {
-        //String tokenStr= inputChars.toString();
+
         String tokenStr = new String(inputChars);
         return tokenStr.substring(tokenStart,tokenStart+tokenLen);
     }
