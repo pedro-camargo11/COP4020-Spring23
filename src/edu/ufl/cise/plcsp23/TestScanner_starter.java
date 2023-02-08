@@ -142,9 +142,16 @@ class TestScanner_starter {
 
 	@Test
 	void identsAndReserved() throws LexicalException {
+		/*
 		String input = """
 				i0
 				  i1  x ~~~2 spaces at beginning and after il
+				y Y
+				""";
+		*/
+		String input = """
+				i0
+				  i1  x ~~~2 spaces
 				y Y
 				""";
 

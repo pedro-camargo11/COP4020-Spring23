@@ -15,7 +15,7 @@ public class Scanner implements IScanner{
 
     //if the character is a newline increment line, set col to 0
     int line = 1;
-    int col = 0;
+    int col = 1;
 
     //set including all the keywords
     private static HashMap<String, Kind> reservedWords;
@@ -84,8 +84,11 @@ public class Scanner implements IScanner{
 
         //update the position of the line,col
         if(ch == '\n'){
-            col = 0;
+            col = 1;
             line++;
+        }
+        else{
+            col++;
         }
 
         pos++;
@@ -129,13 +132,13 @@ public class Scanner implements IScanner{
 
         //read the characters
         while(true){
-
+            //col++;
             switch(state){
 
                 case START -> {
 
                     tokenStart = pos; //position
-                    col++;
+
 
                     switch(ch) {
                         case 0 -> {
@@ -337,9 +340,8 @@ public class Scanner implements IScanner{
                 //when we encounter a '~" and end with newline '\n'
                 case IN_COMMENT -> {
 
-                    if( ch != '\r'){
+                    if( ch != '\r' && ch !='\n'){
 
-                        if(ch != '\n')
                           nextchar();
 
                     }
