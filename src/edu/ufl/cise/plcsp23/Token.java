@@ -11,14 +11,14 @@ public class Token implements IToken{
     int col;
     int line;
 
-    public Token (Kind kind, int tokenStart, int tokenLen, char[] input)
+    public Token (Kind kind, int tokenStart, int tokenLen, char[] input, int line, int col)
     {
         this.kind = kind;
         this.tokenStart = tokenStart;
         this.tokenLen = tokenLen;
         inputChars = input;
-        col= getSourceLocation().column();
-        line = getSourceLocation().line();
+        this.col= col;
+        this.line = line;
     }
     
     public Kind getKind()

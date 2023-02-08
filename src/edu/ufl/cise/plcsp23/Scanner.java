@@ -15,7 +15,7 @@ public class Scanner implements IScanner{
 
     //if the character is a newline increment line, set col to 0
     int line = 1;
-    int col = 1;
+    int col = 0;
 
     //set including all the keywords
     private static HashMap<String, Kind> reservedWords;
@@ -139,7 +139,7 @@ public class Scanner implements IScanner{
 
                     switch(ch) {
                         case 0 -> {
-                            return new Token(Kind.EOF,tokenStart,0,inputChars);
+                            return new Token(Kind.EOF,tokenStart,0,inputChars,line,col);
                         }
                         default -> {
                             throw new LexicalException("Not implemented yet");
@@ -150,17 +150,17 @@ public class Scanner implements IScanner{
 
                         case '+' -> {
                             nextchar();
-                            return new Token(Kind.PLUS, tokenStart, 1, inputChars);
+                            return new Token(Kind.PLUS, tokenStart, 1, inputChars,line,col);
                         }
 
                         case '*' -> {
                             nextchar();
-                            return new Token(Kind.TIMES, tokenStart, 1, inputChars);
+                            return new Token(Kind.TIMES, tokenStart, 1, inputChars,line,col);
                         }
 
                         case '0' -> {
                             nextchar();
-                            return new NumLitToken(tokenStart, 1, inputChars);
+                            return new NumLitToken(tokenStart, 1, inputChars,line,col);
                         }
 
                         case '=' -> {
@@ -170,7 +170,7 @@ public class Scanner implements IScanner{
 
                         case '/' -> {
                             nextchar();
-                            return new Token(Kind.DIV,tokenStart,1,inputChars);
+                            return new Token(Kind.DIV,tokenStart,1,inputChars,line,col);
                         }
 
                         case '>' -> {
@@ -229,12 +229,12 @@ public class Scanner implements IScanner{
                     if(ch == '='){
                         state = state.START;
                         nextchar();
-                        return new Token(Kind.EQ, tokenStart, 2, inputChars);
+                        return new Token(Kind.EQ, tokenStart, 2, inputChars,line, col);
                     }
                     //if it is followed by anything else, then it is now an assigned token
                     else{
                         state = state.START;
-                        return new Token(Kind.ASSIGN,tokenStart,1,inputChars);
+                        return new Token(Kind.ASSIGN,tokenStart,1,inputChars,line,col);
                     }
                 }
 
@@ -243,14 +243,14 @@ public class Scanner implements IScanner{
                     if(ch == '=' ){
                         state = state.START;
                         nextchar();
-                        return new Token(Kind.GE,tokenStart,2,inputChars);
+                        return new Token(Kind.GE,tokenStart,2,inputChars,line,col);
 
                     }
                     //return >
                     else{
 
                         state = state.START;
-                        return new Token(Kind.GT,tokenStart,1,inputChars);
+                        return new Token(Kind.GT,tokenStart,1,inputChars,line,col);
 
                     }
                 }
@@ -260,7 +260,7 @@ public class Scanner implements IScanner{
                     if(ch == '='){
                         state = state.START;
                         nextchar();
-                        return new Token(Kind.LE,tokenStart,2,inputChars);
+                        return new Token(Kind.LE,tokenStart,2,inputChars,line,col);
 
                     }
                     //check to see if it could be part of an exchange token <->
@@ -275,7 +275,7 @@ public class Scanner implements IScanner{
 
                         System.out.println(pos);
                         state = state.START;
-                        return new Token(Kind.LT,tokenStart,1,inputChars);
+                        return new Token(Kind.LT,tokenStart,1,inputChars,line,col);
 
                     }
 
@@ -287,7 +287,7 @@ public class Scanner implements IScanner{
 
                         state = state.START;
                         nextchar();
-                        return new Token(Kind.EXCHANGE,tokenStart,3,inputChars);
+                        return new Token(Kind.EXCHANGE,tokenStart,3,inputChars,line,col);
                     }
                     else{
 
@@ -308,7 +308,7 @@ public class Scanner implements IScanner{
 
                         try {
 
-                            NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars);
+                            NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars,line,col);
                             NumLit.getValue(); //check val
                             return NumLit;
                         }
@@ -329,7 +329,7 @@ public class Scanner implements IScanner{
                     else {
                         nextchar(); //increment pos and ch to skip to include the closing quotation
                         int length = pos - tokenStart;
-                        StringLitToken StringLit = new StringLitToken(tokenStart, length, inputChars);
+                        StringLitToken StringLit = new StringLitToken(tokenStart, length, inputChars,line,col);
                         return StringLit;
                     }
                 }
@@ -362,11 +362,11 @@ public class Scanner implements IScanner{
                         {
                             //gets the kind of the reserved word from the map
                             Kind k = reservedWords.get(tokenString);
-                            return new Token(k, tokenStart, length, inputChars);
+                            return new Token(k, tokenStart, length, inputChars,line,col);
                         }
                         else {
                             //the token is not a reserved word so it is an ident
-                            return new Token(Kind.IDENT, tokenStart, length, inputChars);
+                            return new Token(Kind.IDENT, tokenStart, length, inputChars,line,col);
                         }
                     }
 

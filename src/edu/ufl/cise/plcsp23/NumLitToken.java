@@ -10,9 +10,9 @@ public class NumLitToken extends Token implements INumLitToken { //remove abstra
 
     int value;
 
-    public NumLitToken(int tokenStart, int tokenLen, char[] inputChars){
+    public NumLitToken(int tokenStart, int tokenLen, char[] inputChars,int line,int col){
 
-        super(Kind.NUM_LIT, tokenStart, tokenLen, inputChars);
+        super(Kind.NUM_LIT, tokenStart, tokenLen, inputChars,line, col);
         value = getValue();
     }
     public int getValue(){
