@@ -56,7 +56,7 @@ public class Scanner implements IScanner{
         HAVE_EQ,
         IN_IDENT,
         IN_NUM_LIT,
-        IN_OP_SEP,
+        IN_ESCAPE,
         IN_STR_LIT,
         IN_COMMENT,
         HAVE_GE,
@@ -110,25 +110,6 @@ public class Scanner implements IScanner{
 
         return ('a' <= ch && ch <= 'z') || ('A' <= ch &&  ch <= 'Z');
     }
-
-    //helper function for determining whether a character is a string character. (used for StringLit)
-    private boolean isStringCharacter (int ch){
-        if (ch != '"' && ch != 92){ //valid string character cannot be " or \ (\ is 92 in ascii)
-            return true;
-        }
-        //if \ is followed by b, t, ", or \ it is a legal string character.
-        if (pos != inputChars.length-1){ //makes sure that pos doesn't point to last index in inputChars
-            int next = inputChars[pos+1];
-            if (next == 'b' || next == '"' || next == 't' || next == 92) //92 corresponds to \ in ascii
-            {
-                return true;
-            }
-
-        }
-        return false;
-    }
-
-
 
     private IToken scanToken() throws LexicalException{
 
@@ -380,27 +361,30 @@ public class Scanner implements IScanner{
 
                 case HAVE_EXCHANGE -> {
 
-                    if(ch == '>'){
+                    if(ch == '>')
+                    {
 
                         state = state.START;
                         nextchar();
                         return new Token(Kind.EXCHANGE,tokenStart,3,inputChars,line,col);
                     }
-                    else{
-
+                    else
+                    {
                         throw new LexicalException("exchange does not work");
                     }
                 }
 
                 case HAVE_AND -> {
 
-                    if (ch == '&'){
+                    if (ch == '&')
+                    {
 
                         state = state.START;
                         nextchar();
                         return new Token(Kind.AND,tokenStart,2,inputChars,line,col);
                     }
-                    else{
+                    else
+                    {
 
                         state = state.START;
                         return new Token(Kind.BITAND,tokenStart,1,inputChars,line,col);
@@ -409,13 +393,15 @@ public class Scanner implements IScanner{
 
                 case HAVE_OR -> {
 
-                    if (ch == '|'){
+                    if (ch == '|')
+                    {
 
                         state = state.START;
                         nextchar();
                         return new Token(Kind.OR,tokenStart,2,inputChars,line,col);
                     }
-                    else{
+                    else
+                    {
 
                         state = state.START;
                         return new Token(Kind.BITOR,tokenStart,1,inputChars,line,col);
@@ -424,13 +410,15 @@ public class Scanner implements IScanner{
 
                 case HAVE_EXP -> {
 
-                    if (ch == '*'){
+                    if (ch == '*')
+                    {
 
                         state = state.START;
                         nextchar();
                         return new Token(Kind.EXP,tokenStart,2,inputChars,line,col);
                     }
-                    else{
+                    else
+                    {
 
                         state = state.START;
                         return new Token(Kind.TIMES,tokenStart,1,inputChars,line,col);
@@ -439,22 +427,26 @@ public class Scanner implements IScanner{
 
                 case IN_NUM_LIT -> {
 
-                    if(isDigit(ch)){
+                    if(isDigit(ch))
+                    {
 
                         nextchar();
                     }
-                    else{
+                    else
+                    {
 
                         int length = pos - tokenStart;
                         //return new Token(Kind.NUM_LIT,tokenStart,length,inputChars);
 
-                        try {
+                        try
+                        {
 
                             NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars,line,col);
                             NumLit.getValue(); //check val
                             return NumLit;
                         }
-                        catch(NumberFormatException a){
+                        catch(NumberFormatException a)
+                        {
 
                             throw new LexicalException("Int is too large to be parsed");
                         }
@@ -464,37 +456,71 @@ public class Scanner implements IScanner{
                 }
 
                 case IN_STR_LIT -> {
+
                     //check to see if the character is a valid input character
-                    if (isStringCharacter(ch)){
+
+                    if (ch == '\n' || ch == '\r')
+                    {
+                        throw new LexicalException("Invalid input sequence");
+                    }
+                    else if(ch == '\\')
+                    {
+                        state = state.IN_ESCAPE;
                         nextchar();
                     }
-                    else {
+                    else
+                    {
                         nextchar(); //increment pos and ch to skip to include the closing quotation
                         int length = pos - tokenStart;
-                        StringLitToken StringLit = new StringLitToken(tokenStart, length, inputChars,line,col);
-                        return StringLit;
+                        return new StringLitToken(tokenStart, length, inputChars,line,col);
                     }
+                }
+
+                case IN_ESCAPE -> {
+
+                    //go back to string lit and get the next character
+                    if(ch == 't' || ch == 'b' || ch == '"' || ch == '\\' || ch == 'n' || ch == 'r'){
+
+                        state = state.IN_STR_LIT;
+                        nextchar();
+                    }
+                    else{
+
+                        throw new LexicalException("Illegal escape sequence");
+                    }
+
                 }
 
                 //when we encounter a '~" and end with newline '\n'
                 case IN_COMMENT -> {
 
-                    if( ch != '\r' && ch !='\n'){
+
+                    if( ch != '\r' && ch !='\n')
+                    {
 
                           nextchar();
 
                     }
-                    else{
+                    //edge case if we encounter EOF in text block
+                    else if(ch == 0)
+                    {
+
+                        return new Token(Kind.EOF,tokenStart,0,inputChars,line,col);
+                    }
+                    else
+                    {
 
                         state = State.START;
                     }
                 }
 
                 case IN_IDENT -> {
-                    if(isDigit(ch) || isLetter((ch)) || ch == '_'){
+                    if(isDigit(ch) || isLetter((ch)) || ch == '_')
+                    {
                         nextchar();
                     }
-                    else{
+                    else
+                    {
                         int length = pos - tokenStart;
                         String tokenString = new String (inputChars);
                         tokenString = tokenString.substring(tokenStart, tokenStart+length);
@@ -505,16 +531,12 @@ public class Scanner implements IScanner{
                             Kind k = reservedWords.get(tokenString);
                             return new Token(k, tokenStart, length, inputChars,line,col);
                         }
-                        else {
+                        else
+                        {
                             //the token is not a reserved word so it is an ident
                             return new Token(Kind.IDENT, tokenStart, length, inputChars,line,col);
                         }
                     }
-
-                }
-
-                case IN_OP_SEP -> {
-
 
                 }
 
