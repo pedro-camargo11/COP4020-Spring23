@@ -57,7 +57,10 @@ public class Scanner implements IScanner{
         IN_NUM_LIT,
         IN_OP_SEP,
         IN_STR_LIT,
-        IN_COMMENT
+        IN_COMMENT,
+        HAVE_GQ,
+        HAVE_LQ,
+        HAVE_EXCHANGE
     }
 
     //constructor
@@ -76,6 +79,7 @@ public class Scanner implements IScanner{
         return scanToken();
         //return null;//for now
     }
+    //miscounted pos
     public void nextchar() throws LexicalException{
 
         //update the position of the line,col
@@ -104,6 +108,10 @@ public class Scanner implements IScanner{
         return ('a' <= ch && ch <= 'z') || ('A' <= ch &&  ch <= 'Z');
     }
 
+    private void error(String message){
+
+        System.out.println(message);
+    }
 
 
 
@@ -152,6 +160,23 @@ public class Scanner implements IScanner{
                             nextchar();
                         }
 
+                        case '/' -> {
+                            nextchar();
+                            return new Token(Kind.DIV,tokenStart,1,inputChars);
+                        }
+
+                        case '>' -> {
+                            state = state.HAVE_GQ;
+                            nextchar();
+                        }
+
+                        case '<' -> {
+
+                            state = state.HAVE_LQ;
+                            nextchar();
+
+                        }
+
                         case '1','2','3','4','5','6','7','8','9' -> {
 
                             state = State.IN_NUM_LIT;
@@ -192,8 +217,69 @@ public class Scanner implements IScanner{
                         nextchar();
                         return new Token(Kind.EQ, tokenStart, 2, inputChars);
                     }
+                    //if it is followed by anything else, then it is now an assigned token
                     else{
-                        //error("expected=");
+                        state =state.START;
+                        nextchar();
+                        return new Token(Kind.ASSIGN,tokenStart,1,inputChars);
+                    }
+                }
+
+                case HAVE_GQ -> {
+
+                    if(ch == '=' ){
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.GE,tokenStart,2,inputChars);
+
+                    }
+                    //return >
+                    else{
+
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.GT,tokenStart,1,inputChars);
+
+                    }
+                }
+
+                case HAVE_LQ -> {
+
+                    if(ch == '='){
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.LE,tokenStart,2,inputChars);
+
+                    }
+                    //check to see if it could be part of an exchange token <->
+                    else if(ch == '-'){
+
+                        state = state.HAVE_EXCHANGE;
+                        nextchar();
+
+                    }
+                    //return <
+                    else{
+
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.LT,tokenStart,1,inputChars);
+
+                    }
+
+                }
+
+                case HAVE_EXCHANGE -> {
+
+                    if(ch == '>'){
+
+                        state = state.START;
+                        nextchar();
+                        return new Token(Kind.EXCHANGE,tokenStart,3,inputChars);
+                    }
+                    else{
+
+                        error("This token does not work");
                     }
                 }
 
