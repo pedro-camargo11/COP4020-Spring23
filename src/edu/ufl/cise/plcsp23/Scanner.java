@@ -3,7 +3,7 @@ import edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import edu.ufl.cise.plcsp23.LexicalException;
+
 
 public class Scanner implements IScanner{
     final String input;
@@ -74,7 +74,7 @@ public class Scanner implements IScanner{
         //creates an array of chars from input string with an extra 0 on the end.
         inputChars = Arrays.copyOf(input.toCharArray(), input.length()+1);
         pos = 0;
-        ch= inputChars[pos];
+        ch = inputChars[pos];
 
     }
 
@@ -84,7 +84,7 @@ public class Scanner implements IScanner{
 
     }
     //miscounted pos
-    public void nextchar() throws LexicalException{
+    public void nextchar(){
 
         //update the position of the line,col
         if(ch == '\n'){
@@ -111,6 +111,12 @@ public class Scanner implements IScanner{
         return ('a' <= ch && ch <= 'z') || ('A' <= ch &&  ch <= 'Z');
     }
 
+    //this will be the new lexical exception throw
+    private void error(String mes) throws LexicalException{
+
+        throw new LexicalException(mes);
+    }
+
     private IToken scanToken() throws LexicalException{
 
         State state = State.START;
@@ -118,7 +124,7 @@ public class Scanner implements IScanner{
 
         //read the characters
         while(true){
-            //col++;
+
             switch(state){
 
                 case START -> {
@@ -130,9 +136,6 @@ public class Scanner implements IScanner{
                         case 0 -> {
                             return new Token(Kind.EOF,tokenStart,0,inputChars,line,col);
                         }
-                        default -> {
-                            throw new LexicalException("Not implemented yet");
-                        }
 
                         //ignore whitespace
                         case ' ', '\n', '\r', '\t', '\f' -> nextchar();
@@ -143,7 +146,7 @@ public class Scanner implements IScanner{
                         }
 
                         case '*' -> {
-                            state = state.HAVE_EXP;
+                            state = State.HAVE_EXP;
                             nextchar();
                         }
 
@@ -153,7 +156,7 @@ public class Scanner implements IScanner{
                         }
 
                         case '=' -> {
-                            state = state.HAVE_EQ;
+                            state = State.HAVE_EQ;
                             nextchar();
                         }
 
@@ -239,34 +242,32 @@ public class Scanner implements IScanner{
 
                         case '&' -> {
 
-                            state = state.HAVE_AND;
+                            state = State.HAVE_AND;
                             nextchar();
                         }
 
                         case '|' -> {
 
-                            state = state.HAVE_OR;
+                            state = State.HAVE_OR;
                             nextchar();
                         }
 
                         case '>' -> {
-                            state = state.HAVE_GE;
+                            state = State.HAVE_GE;
                             nextchar();
                         }
 
                         case '<' -> {
 
-                            state = state.HAVE_LE;
+                            state = State.HAVE_LE;
                             nextchar();
 
                         }
 
                         case '"' -> {
-                            state = state.IN_STR_LIT;
+                            state = State.IN_STR_LIT;
                             nextchar();
                         }
-
-
 
                         case '1','2','3','4','5','6','7','8','9' -> {
 
@@ -274,19 +275,8 @@ public class Scanner implements IScanner{
                             nextchar();
                         }
 
-                        case 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z' -> {
-
-                            state = State.IN_IDENT;
-                            nextchar();
-                        }
-
-                        case 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z' -> {
-
-                            state = State.IN_IDENT;
-                            nextchar();
-                        }
-
-                        case '_' -> {
+                        //all cases of In_DENT have been merged into one case
+                        case 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '_' -> {
 
                             state = State.IN_IDENT;
                             nextchar();
@@ -298,20 +288,20 @@ public class Scanner implements IScanner{
                             nextchar();
                         }
 
-
+                        default -> error("Not implemented yet at position: " + pos);
 
                     }
                 }
 
                 case HAVE_EQ -> {
                     if(ch == '='){
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.EQ, tokenStart, 2, inputChars,line, col);
                     }
                     //if it is followed by anything else, then it is now an assigned token
                     else{
-                        state = state.START;
+                        state = State.START;
                         return new Token(Kind.ASSIGN,tokenStart,1,inputChars,line,col);
                     }
                 }
@@ -319,7 +309,7 @@ public class Scanner implements IScanner{
                 case HAVE_GE -> {
 
                     if(ch == '=' ){
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.GE,tokenStart,2,inputChars,line,col);
 
@@ -327,7 +317,7 @@ public class Scanner implements IScanner{
                     //return >
                     else{
 
-                        state = state.START;
+                        state = State.START;
                         return new Token(Kind.GT,tokenStart,1,inputChars,line,col);
 
                     }
@@ -336,7 +326,7 @@ public class Scanner implements IScanner{
                 case HAVE_LE -> {
 
                     if(ch == '='){
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.LE,tokenStart,2,inputChars,line,col);
 
@@ -344,7 +334,7 @@ public class Scanner implements IScanner{
                     //check to see if it could be part of an exchange token <->
                     else if(ch == '-'){
 
-                        state = state.HAVE_EXCHANGE;
+                        state = State.HAVE_EXCHANGE;
                         nextchar();
 
                     }
@@ -352,7 +342,7 @@ public class Scanner implements IScanner{
                     else{
 
                         System.out.println(pos);
-                        state = state.START;
+                        state = State.START;
                         return new Token(Kind.LT,tokenStart,1,inputChars,line,col);
 
                     }
@@ -364,13 +354,13 @@ public class Scanner implements IScanner{
                     if(ch == '>')
                     {
 
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.EXCHANGE,tokenStart,3,inputChars,line,col);
                     }
                     else
                     {
-                        throw new LexicalException("exchange does not work");
+                        error("exchange does not work at position" + pos);
                     }
                 }
 
@@ -379,14 +369,14 @@ public class Scanner implements IScanner{
                     if (ch == '&')
                     {
 
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.AND,tokenStart,2,inputChars,line,col);
                     }
                     else
                     {
 
-                        state = state.START;
+                        state = State.START;
                         return new Token(Kind.BITAND,tokenStart,1,inputChars,line,col);
                     }
                 }
@@ -396,14 +386,14 @@ public class Scanner implements IScanner{
                     if (ch == '|')
                     {
 
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.OR,tokenStart,2,inputChars,line,col);
                     }
                     else
                     {
 
-                        state = state.START;
+                        state = State.START;
                         return new Token(Kind.BITOR,tokenStart,1,inputChars,line,col);
                     }
                 }
@@ -413,14 +403,14 @@ public class Scanner implements IScanner{
                     if (ch == '*')
                     {
 
-                        state = state.START;
+                        state = State.START;
                         nextchar();
                         return new Token(Kind.EXP,tokenStart,2,inputChars,line,col);
                     }
                     else
                     {
 
-                        state = state.START;
+                        state = State.START;
                         return new Token(Kind.TIMES,tokenStart,1,inputChars,line,col);
                     }
                 }
@@ -435,12 +425,9 @@ public class Scanner implements IScanner{
                     else
                     {
 
-                        int length = pos - tokenStart;
-                        //return new Token(Kind.NUM_LIT,tokenStart,length,inputChars);
-
                         try
                         {
-
+                            int length = pos - tokenStart;
                             NumLitToken NumLit =  new NumLitToken(tokenStart, length, inputChars,line,col);
                             NumLit.getValue(); //check val
                             return NumLit;
@@ -448,7 +435,7 @@ public class Scanner implements IScanner{
                         catch(NumberFormatException a)
                         {
 
-                            throw new LexicalException("Int is too large to be parsed");
+                            error("Int is too large to be parsed at position " + pos);
                         }
                     }
 
@@ -465,11 +452,11 @@ public class Scanner implements IScanner{
                     }
                     else if (ch == '\n' || ch == '\r')
                     {
-                        throw new LexicalException("Invalid input sequence");
+                        error("Invalid input sequence at position " + pos);
                     }
                     else if(ch == '\\')
                     {
-                        state = state.IN_ESCAPE;
+                        state = State.IN_ESCAPE;
                         nextchar();
                     }
                     else
@@ -483,12 +470,12 @@ public class Scanner implements IScanner{
                     //go back to string lit and get the next character
                     if(ch == 't' || ch == 'b' || ch == '"' || ch == '\\' || ch == 'n' || ch == 'r'){
 
-                        state = state.IN_STR_LIT;
+                        state = State.IN_STR_LIT;
                         nextchar();
                     }
                     else{
 
-                        throw new LexicalException("Illegal escape sequence");
+                        error("Illegal escape sequence at position " + pos);
                     }
 
                 }
@@ -496,18 +483,17 @@ public class Scanner implements IScanner{
                 //when we encounter a '~" and end with newline '\n'
                 case IN_COMMENT -> {
 
-
                     if( ch != '\r' && ch !='\n')
                     {
+                        //EOF case
+                        if(ch == 0){
 
-                          nextchar();
+                            return new Token(Kind.EOF,tokenStart,0,inputChars,line,col);
+                        }
+                        else{
 
-                    }
-                    //edge case if we encounter EOF in text block
-                    else if(ch == 0)
-                    {
-
-                        return new Token(Kind.EOF,tokenStart,0,inputChars,line,col);
+                            nextchar();
+                        }
                     }
                     else
                     {
@@ -517,6 +503,7 @@ public class Scanner implements IScanner{
                 }
 
                 case IN_IDENT -> {
+
                     if(isDigit(ch) || isLetter((ch)) || ch == '_')
                     {
                         nextchar();
@@ -542,9 +529,7 @@ public class Scanner implements IScanner{
 
                 }
 
-                default -> {
-                    throw new UnsupportedOperationException("Bugs in Scanner");
-                }
+                default -> throw new UnsupportedOperationException("Bugs in Scanner");
             }
         }
     }
