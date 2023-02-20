@@ -1,5 +1,8 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.AST;
+import edu.ufl.cise.plcsp23.ast.Expr;
+import edu.ufl.cise.plcsp23.ast.NumLitExpr;
+import edu.ufl.cise.plcsp23.ast.StringLitExpr;
 
 
 import java.util.ArrayList;
@@ -9,6 +12,7 @@ public class Parser implements IParser{
     public ArrayList<IToken> tokenList;
     IToken t;
     private int current = 0; //keeps track of position
+    Expr parsed;
 
     //constructor -> passes in only one time
     public Parser(ArrayList<IToken> tokenList) throws PLCException {
@@ -62,17 +66,17 @@ public class Parser implements IParser{
     //no error given anymore, go with implementing grammar functions.
     public AST parse() throws PLCException{
 
-        Expr();
+        Expression();
 
 //        if(isAtEnd()){
 //
 //            throw new SyntaxException("Not correct syntax");
 //        }
-        return null;
+        return parsed;
     }
 
     //Expression
-    void Expr() throws PLCException {
+    void Expression() throws PLCException {
 
         //conditional_expr
         if(isKind(IToken.Kind.RES_if)){
@@ -193,13 +197,23 @@ public class Parser implements IParser{
 
         if(isKind(IToken.Kind.STRING_LIT, IToken.Kind.NUM_LIT, IToken.Kind.RES_rand, IToken.Kind.RES_Z)){
 
-            consume();
+            switch(t.getKind()){
+
+                case NUM_LIT -> {
+                    Expr num = new NumLitExpr(t);
+                    parsed = num;
+                }
+                case STRING_LIT -> {
+                    Expr str = new StringLitExpr(t);
+                    parsed = str;
+                }
+            }
         }
         else if(isKind(IToken.Kind.LPAREN)){
 
             consume();
 
-            Expr();
+            Expression();
 
             if(isKind(IToken.Kind.RPAREN)){
 
