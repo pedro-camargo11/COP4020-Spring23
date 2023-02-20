@@ -11,6 +11,8 @@ public class Token implements IToken{
     int col;
     int line;
 
+    String tokenStr;
+
     public Token (Kind kind, int tokenStart, int tokenLen, char[] input, int line, int col)
     {
         this.kind = kind;
@@ -19,6 +21,7 @@ public class Token implements IToken{
         inputChars = input;
         this.col= col;
         this.line = line;
+        tokenStr = this.getTokenString();
     }
 
     public Kind getKind()

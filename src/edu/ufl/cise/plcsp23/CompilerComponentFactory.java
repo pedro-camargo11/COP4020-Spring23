@@ -10,11 +10,28 @@
 
 package edu.ufl.cise.plcsp23;
 
+import java.util.ArrayList;
+import edu.ufl.cise.plcsp23.IToken;
+
 public class CompilerComponentFactory {
 	public static IScanner makeScanner(String input) {
 		//Add statement to return an instance of your scanner
 		return new Scanner(input);
 
 	}
+
+	public static IParser makeAssignment2Parser(String input) throws PLCException {
+		// create scanner and parser and return the parser
+		IScanner scanner = makeScanner(input);
+		ArrayList<IToken> tokenList = new ArrayList<IToken>();
+		IToken token = scanner.next();
+		while (token.getKind() != Token.Kind.EOF) {
+			tokenList.add(token);
+			token = scanner.next();
+		}
+		IParser parser = new Parser(tokenList);
+		return parser;
+	}
+
 
 }

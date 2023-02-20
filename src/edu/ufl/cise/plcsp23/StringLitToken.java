@@ -3,8 +3,10 @@ package edu.ufl.cise.plcsp23;
 import java.util.ArrayList;
 
 public class StringLitToken extends Token implements IStringLitToken{
+
     public StringLitToken(int tokenStart, int tokenLen, char[] inputChars,int line,int col){
         super(Kind.STRING_LIT, tokenStart, tokenLen, inputChars,line, col);
+
     }
 
     //Easier to read and understand - could be made to return stringBuilder or char?

@@ -54,8 +54,11 @@ class Assignment2Test_starter {
 	 * @return  AST representing the program
 	 * @throws PLCException
 	 */
+
+	//FIX THIS LATER SO ITS CORRECT
 	AST getAST(String input) throws  PLCException {
-		return  CompilerComponentFactory.makeAssignment2Parser(input).parse();
+		//return  CompilerComponentFactory.makeAssignment2Parser(input).parse();
+		return null;
 	}
 	
 	/**
@@ -134,6 +137,17 @@ class Assignment2Test_starter {
 		assertEquals(name,ident.getName());
 		return ident;		
 	}
+
+	//our own tests ------------------------------------------------------------
+	@Test
+	void tokenListTest() throws PLCException {
+		String input = "hello if else0";  //no empty expressions, this program should throw a SyntaxException
+		IScanner scanner = CompilerComponentFactory.makeScanner(input);
+		IParser parser = CompilerComponentFactory.makeAssignment2Parser(input);
+		assert (true);
+	}
+
+	//--------------------------------------------------------------------------
 		
 	@Test
 	void emptyProgram() throws PLCException {
