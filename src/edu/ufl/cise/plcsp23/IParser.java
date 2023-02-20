@@ -4,6 +4,6 @@ import edu.ufl.cise.plcsp23.ast.AST;
 
 public interface IParser {
 	
-	//AST parse() throws PLCException;
+	AST parse() throws PLCException;
 
 }

@@ -55,16 +55,24 @@ public class Parser implements IParser{
     public boolean isAtEnd(){
         return (peek().getKind() == IToken.Kind.EOF);
     }
+
+    void error() throws PLCException{
+        throw new SyntaxException("Syntax error occured");
+    }
     //no error given anymore, go with implementing grammar functions.
-    AST parse() throws PLCException{
+    public AST parse() throws PLCException{
 
-        Expression();
+        Expr();
 
-
+//        if(isAtEnd()){
+//
+//            throw new SyntaxException("Not correct syntax");
+//        }
         return null;
     }
 
-    void Expression() {
+    //Expression
+    void Expr() throws PLCException {
 
         //conditional_expr
         if(isKind(IToken.Kind.RES_if)){
@@ -79,10 +87,12 @@ public class Parser implements IParser{
 
     void ConditionalExpression(){
 
+        consume();
+
     }
 
     //LogicalOrExpression
-    void OrExpression(){
+    void OrExpression() throws PLCException {
 
         AndExpression();
 
@@ -94,7 +104,7 @@ public class Parser implements IParser{
     }
 
     //LogicalAndExpression
-    void AndExpression(){
+    void AndExpression() throws PLCException {
 
         CompareExpr();
 
@@ -109,7 +119,7 @@ public class Parser implements IParser{
     }
 
     //Comparison Expression
-    void CompareExpr(){
+    void CompareExpr() throws PLCException {
 
         PowExpr();
 
@@ -122,7 +132,7 @@ public class Parser implements IParser{
     }
 
     //Power Expression
-    void PowExpr(){
+    void PowExpr() throws PLCException {
 
         AdditiveExpr();
 
@@ -135,8 +145,72 @@ public class Parser implements IParser{
     }
 
     //Additive Expression
-    void AdditiveExpr(){
+    void AdditiveExpr() throws PLCException {
 
+        MultExpr();
+
+        while(isKind(IToken.Kind.PLUS, IToken.Kind.MINUS)){
+
+            consume();
+            MultExpr();
+
+        }
+
+        return;
+
+    }
+
+    //Multiplicative Expression
+    void MultExpr() throws PLCException {
+
+        UnaryExpr();
+
+        while(isKind(IToken.Kind.TIMES, IToken.Kind.DIV, IToken.Kind.MOD)){
+
+            consume();
+            UnaryExpr();
+
+        }
+    }
+
+    //Unary Expressions
+    void UnaryExpr() throws PLCException{
+
+        if(isKind(IToken.Kind.BANG, IToken.Kind.RES_atan, IToken.Kind.MINUS, IToken.Kind.RES_sin,IToken.Kind.RES_cos)){
+
+            consume();
+            UnaryExpr();
+        }
+        else{
+
+            PrimaryExpr();
+        }
+
+    }
+
+    //Primary Expressions
+    void PrimaryExpr() throws PLCException {
+
+        if(isKind(IToken.Kind.STRING_LIT, IToken.Kind.NUM_LIT, IToken.Kind.RES_rand, IToken.Kind.RES_Z)){
+
+            consume();
+        }
+        else if(isKind(IToken.Kind.LPAREN)){
+
+            consume();
+
+            Expr();
+
+            if(isKind(IToken.Kind.RPAREN)){
+
+                consume();
+
+            }
+        }
+        else{
+
+            error();
+        }
 
     }
 

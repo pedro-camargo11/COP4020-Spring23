@@ -31,6 +31,7 @@ import edu.ufl.cise.plcsp23.ast.UnaryExpr;
 import edu.ufl.cise.plcsp23.ast.ZExpr;
 
 
+
 class Assignment2Test_starter {
 	
 	
@@ -57,8 +58,8 @@ class Assignment2Test_starter {
 
 	//FIX THIS LATER SO ITS CORRECT
 	AST getAST(String input) throws  PLCException {
-		//return  CompilerComponentFactory.makeAssignment2Parser(input).parse();
-		return null;
+		return  CompilerComponentFactory.makeAssignment2Parser(input).parse();
+
 	}
 	
 	/**
