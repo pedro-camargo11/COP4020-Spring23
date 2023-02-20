@@ -6,21 +6,35 @@ import java.util.ArrayList;
 public class Parser implements IParser{
 
     public ArrayList<IToken> tokenList;
+    IToken t;
+    private int current = 0; //keeps track of position
 
-    //constructor
+    //constructor -> passes in only one time
     public Parser(ArrayList<IToken> tokenList) throws PLCException {
         this.tokenList = tokenList;
+        t = tokenList.get(current);
+
+        //checking getTokenString
+        System.out.println(t.getTokenString());
     }
 
-    IToken t = null;
+    //consume the token and move on to the next.
+    void consume(){
+
+        //needs more to it... I think
+
+        current++;
+        t = tokenList.get(current);
+    }
 
     protected boolean isKind(IToken.Kind kind){
         return (t.getKind() == kind);
     }
 
-    //AST parse() throws PLCException{
-    //    return null;
-    //}
+    //no error given anymore, go with implementing grammar functions.
+    AST parse() throws PLCException{
+        return null;
+    }
 
     void Expression() {
         //conditional_expr

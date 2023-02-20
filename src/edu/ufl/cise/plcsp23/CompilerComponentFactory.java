@@ -29,6 +29,7 @@ public class CompilerComponentFactory {
 			tokenList.add(token);
 			token = scanner.next();
 		}
+		tokenList.add(token); //this should get EOF token and end parsing
 		IParser parser = new Parser(tokenList);
 		return parser;
 	}
