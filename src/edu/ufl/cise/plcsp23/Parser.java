@@ -45,6 +45,16 @@ public class Parser implements IParser{
         return false;
     }
 
+    //helper functions
+    public IToken peek(){
+        return tokenList.get(current);
+    }
+    public IToken previous(){
+        return tokenList.get(current-1);
+    }
+    public boolean isAtEnd(){
+        return (peek().getKind() == IToken.Kind.EOF);
+    }
     //no error given anymore, go with implementing grammar functions.
     AST parse() throws PLCException{
 
