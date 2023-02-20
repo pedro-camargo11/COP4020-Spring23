@@ -1,6 +1,7 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.AST;
 
+
 import java.util.ArrayList;
 
 public class Parser implements IParser{
@@ -27,26 +28,109 @@ public class Parser implements IParser{
         t = tokenList.get(current);
     }
 
+    //Singular token.
     protected boolean isKind(IToken.Kind kind){
         return (t.getKind() == kind);
     }
 
+    //multiple kinds of isKind tokens
+    protected boolean isKind(IToken.Kind... kinds){
+
+        for(IToken.Kind k:kinds){
+
+            if(k == t.getKind()){
+                return true;
+            }
+        }
+        return false;
+    }
+
     //no error given anymore, go with implementing grammar functions.
     AST parse() throws PLCException{
+
+        Expression();
+
+
         return null;
     }
 
     void Expression() {
+
         //conditional_expr
-        //if ()
-        //or_expr
+        if(isKind(IToken.Kind.RES_if)){
+            ConditionalExpression();
+        }
+        //Or_expr
+        else{
+
+            OrExpression();
+        }
     }
+
     void ConditionalExpression(){
 
     }
+
+    //LogicalOrExpression
     void OrExpression(){
 
+        AndExpression();
+
+        while(isKind(IToken.Kind.BITOR, IToken.Kind.OR)){
+            consume();
+            AndExpression();
+        }
+        return;
     }
+
+    //LogicalAndExpression
+    void AndExpression(){
+
+        CompareExpr();
+
+        while(isKind(IToken.Kind.BITAND,IToken.Kind.AND)){
+            consume();
+            CompareExpr();
+        }
+
+        return;
+
+
+    }
+
+    //Comparison Expression
+    void CompareExpr(){
+
+        PowExpr();
+
+        while(isKind(IToken.Kind.EQ, IToken.Kind.GT,IToken.Kind.LT, IToken.Kind.LE,IToken.Kind.GT)){
+            consume();
+            PowExpr();
+        }
+
+        return;
+    }
+
+    //Power Expression
+    void PowExpr(){
+
+        AdditiveExpr();
+
+        while(isKind(IToken.Kind.EXP)){
+            consume();
+            AdditiveExpr();
+        }
+
+        return;
+    }
+
+    //Additive Expression
+    void AdditiveExpr(){
+
+
+    }
+
+
 
 
 }
