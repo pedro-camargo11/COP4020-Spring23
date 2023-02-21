@@ -144,7 +144,7 @@ public class Parser implements IParser{
         while(isKind(IToken.Kind.EXP)){
             IToken.Kind op = t.getKind();
             consume();
-            right = AdditiveExpr();
+            right = PowExpr();
             left = new BinaryExpr (previous(), left, op, right);
         }
         return left;
