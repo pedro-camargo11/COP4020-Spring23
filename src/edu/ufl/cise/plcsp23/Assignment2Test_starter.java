@@ -276,8 +276,6 @@ class Assignment2Test_starter {
 		});
 	}
 
-	/////////////////////////
-	///* Brian *///
 	@Test
 	void andPowerExpressions() throws PLCException {
 		String input = " 2 ** 3 ** 5 "; // 2 ** (3 ** 5)
@@ -425,8 +423,6 @@ class Assignment2Test_starter {
 		checkIdent(cfr.getE(), "together");
 	}
 
-
-	//////// Thatoneguy#7536 ////////////
 	@Test
 	void error2() throws PLCException {
 		String input = "(3 + 4"; // No closing parenthesis
@@ -634,4 +630,3 @@ class Assignment2Test_starter {
 		checkIdent(e, "b");
 	}
 }
-
