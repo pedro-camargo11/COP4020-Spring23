@@ -9,7 +9,6 @@ public class Parser implements IParser{
     public ArrayList<IToken> tokenList;
     IToken t;
     private int current = 0; //keeps track of position
-    Expr parsed;
 
     //constructor -> passes in only one time
     public Parser(ArrayList<IToken> tokenList) throws PLCException {
@@ -60,10 +59,6 @@ public class Parser implements IParser{
 
         return Expression();
 
-//        if(isAtEnd()){
-//
-//            throw new SyntaxException("Not correct syntax");
-//        }
     }
 
     //Expression
@@ -81,11 +76,15 @@ public class Parser implements IParser{
     }
 
     //conditional hasn't been implemented yet
-    Expr ConditionalExpression(){
-
-        consume();
-        return null;
-
+    Expr ConditionalExpression() throws PLCException{
+        IToken firstToken = t;
+        consume();//consume if
+        Expr guard = Expression();
+        consume(); //consume ?
+        Expr trueCase = Expression();
+        consume(); //consume ?
+        Expr falseCase = Expression();
+        return new ConditionalExpr(t, guard, trueCase, falseCase);
     }
 
     //LogicalOrExpression
