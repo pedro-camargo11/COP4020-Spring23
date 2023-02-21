@@ -16,15 +16,10 @@ public class Parser implements IParser{
         this.tokenList = tokenList;
         t = tokenList.get(current);
 
-        //checking getTokenString
-        System.out.println(t.getTokenString());
     }
 
     //consume the token and move on to the next.
     void consume(){
-
-        //needs more to it... I think
-
         current++;
         t = tokenList.get(current);
     }
@@ -75,7 +70,7 @@ public class Parser implements IParser{
     Expr Expression() throws PLCException {
 
         //conditional_expr
-        if(peek().getKind() == IToken.Kind.RES_if){
+        if(isKind(IToken.Kind.RES_if)){
             return ConditionalExpression();
         }
         //Or_expr
@@ -96,79 +91,94 @@ public class Parser implements IParser{
     //LogicalOrExpression
     Expr OrExpression() throws PLCException {
 
-        Expr x = AndExpression();
+        Expr left = null;
+        Expr right = null;
+        left = AndExpression();
 
         while(isKind(IToken.Kind.BITOR, IToken.Kind.OR)){
+            IToken.Kind op = t.getKind();
             consume();
-            return AndExpression();
+            right = AndExpression();
+            left = new BinaryExpr(previous(), left, op, right);
         }
-        return x;
+        return left;
     }
 
     //LogicalAndExpression
     Expr AndExpression() throws PLCException {
-
-        Expr x =  CompareExpr();
+        Expr left = null;
+        Expr right = null;
+        left =  CompareExpr();
 
         while(isKind(IToken.Kind.BITAND,IToken.Kind.AND)){
+            IToken.Kind op = t.getKind();
             consume();
-            return CompareExpr();
+            right = CompareExpr();
+            left = new BinaryExpr (previous(), left, op, right);
         }
-        return x;
+        return left;
 
     }
 
     //Comparison Expression
     Expr CompareExpr() throws PLCException {
 
-        Expr x = PowExpr();
+        Expr left = null;
+        Expr right = null;
+        left = PowExpr();
 
         while(isKind(IToken.Kind.EQ, IToken.Kind.GT,IToken.Kind.LT, IToken.Kind.LE,IToken.Kind.GT)){
+            IToken.Kind op = t.getKind();
             consume();
-            return PowExpr();
+            right = PowExpr();
+            left = new BinaryExpr (previous(), left, op, right);
         }
-
-        return x;
+        return left;
     }
 
     //Power Expression
     Expr PowExpr() throws PLCException {
-
-        Expr x = AdditiveExpr();
+        Expr left = null;
+        Expr right = null;
+        left = AdditiveExpr();
 
         while(isKind(IToken.Kind.EXP)){
+            IToken.Kind op = t.getKind();
             consume();
-            return AdditiveExpr();
+            right = AdditiveExpr();
+            left = new BinaryExpr (previous(), left, op, right);
         }
-        return x;
+        return left;
     }
 
     //Additive Expression
     Expr AdditiveExpr() throws PLCException {
-
-        Expr x = MultExpr();
+        Expr left = null;
+        Expr right = null;
+        left = MultExpr();
 
         while(isKind(IToken.Kind.PLUS, IToken.Kind.MINUS)){
-
+            IToken.Kind op = t.getKind();
             consume();
-             return MultExpr();
-
+            right = MultExpr();
+            left = new BinaryExpr (previous(), left, op, right);
         }
-        return x;
+        return left;
     }
 
     //Multiplicative Expression
     Expr MultExpr() throws PLCException {
-
-        Expr x = UnaryExpression();
+        Expr left = null;
+        Expr right = null;
+        left = UnaryExpression();
 
         while(isKind(IToken.Kind.TIMES, IToken.Kind.DIV, IToken.Kind.MOD)){
-
+            IToken.Kind op = t.getKind();
             consume();
-            return UnaryExpression();
-
+            right = UnaryExpression();
+            left = new BinaryExpr (previous(), left, op, right);
         }
-        return x;
+        return left;
     }
 
     //Unary Expressions
@@ -192,22 +202,27 @@ public class Parser implements IParser{
         switch (t.getKind()) {
 
             case NUM_LIT -> {
-                return new NumLitExpr(t);
+                consume();
+                return new NumLitExpr(previous());
             }
             case STRING_LIT -> {
-                return new StringLitExpr(t);
+                consume();
+                return new StringLitExpr(previous());
             }
 
-            case IDENT -> {
-                return new IdentExpr(t);
+            case IDENT ->{
+                consume();
+                return new IdentExpr(previous());
             }
 
             case RES_Z -> {
-                return new ZExpr(t);
+                consume();
+                return new ZExpr(previous());
             }
 
             case RES_rand -> {
-                return new RandomExpr(t);
+                consume();
+                return new RandomExpr(previous());
             }
 
             case LPAREN -> {
@@ -223,7 +238,4 @@ public class Parser implements IParser{
         }
         return null;
     }
-
-
-
 }
