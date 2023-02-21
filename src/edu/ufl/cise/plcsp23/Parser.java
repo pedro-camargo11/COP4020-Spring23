@@ -160,29 +160,29 @@ public class Parser implements IParser{
     //Multiplicative Expression
     Expr MultExpr() throws PLCException {
 
-        Expr x = UnaryExpr();
+        Expr x = UnaryExpression();
 
         while(isKind(IToken.Kind.TIMES, IToken.Kind.DIV, IToken.Kind.MOD)){
 
             consume();
-            return UnaryExpr();
+            return UnaryExpression();
 
         }
         return x;
     }
 
     //Unary Expressions
-    Expr UnaryExpr() throws PLCException{
+    Expr UnaryExpression() throws PLCException{
 
+        Expr right = null;
         if(isKind(IToken.Kind.BANG, IToken.Kind.RES_atan, IToken.Kind.MINUS, IToken.Kind.RES_sin,IToken.Kind.RES_cos)){
-
+            IToken unaryToken = t; // reassign
             consume();
-            return UnaryExpr();
+            right = UnaryExpression();
+            return new UnaryExpr(previous(),unaryToken.getKind(),right);
         }
-        else{
 
-            return PrimaryExpr();
-        }
+        return PrimaryExpr();
 
     }
 
