@@ -1,8 +1,5 @@
 package edu.ufl.cise.plcsp23;
-import edu.ufl.cise.plcsp23.ast.AST;
-import edu.ufl.cise.plcsp23.ast.Expr;
-import edu.ufl.cise.plcsp23.ast.NumLitExpr;
-import edu.ufl.cise.plcsp23.ast.StringLitExpr;
+import edu.ufl.cise.plcsp23.ast.*;
 
 
 import java.util.ArrayList;
@@ -66,168 +63,166 @@ public class Parser implements IParser{
     //no error given anymore, go with implementing grammar functions.
     public AST parse() throws PLCException{
 
-        Expression();
+        return Expression();
 
 //        if(isAtEnd()){
 //
 //            throw new SyntaxException("Not correct syntax");
 //        }
-        return parsed;
     }
 
     //Expression
-    void Expression() throws PLCException {
+    Expr Expression() throws PLCException {
 
         //conditional_expr
-        if(isKind(IToken.Kind.RES_if)){
-            ConditionalExpression();
+        if(peek().getKind() == IToken.Kind.RES_if){
+            return ConditionalExpression();
         }
         //Or_expr
         else{
 
-            OrExpression();
+            return OrExpression();
         }
     }
 
-    void ConditionalExpression(){
+    //conditional hasn't been implemented yet
+    Expr ConditionalExpression(){
 
         consume();
+        return null;
 
     }
 
     //LogicalOrExpression
-    void OrExpression() throws PLCException {
+    Expr OrExpression() throws PLCException {
 
-        AndExpression();
+        Expr x = AndExpression();
 
         while(isKind(IToken.Kind.BITOR, IToken.Kind.OR)){
             consume();
-            AndExpression();
+            return AndExpression();
         }
-        return;
+        return x;
     }
 
     //LogicalAndExpression
-    void AndExpression() throws PLCException {
+    Expr AndExpression() throws PLCException {
 
-        CompareExpr();
+        Expr x =  CompareExpr();
 
         while(isKind(IToken.Kind.BITAND,IToken.Kind.AND)){
             consume();
-            CompareExpr();
+            return CompareExpr();
         }
-
-        return;
-
+        return x;
 
     }
 
     //Comparison Expression
-    void CompareExpr() throws PLCException {
+    Expr CompareExpr() throws PLCException {
 
-        PowExpr();
+        Expr x = PowExpr();
 
         while(isKind(IToken.Kind.EQ, IToken.Kind.GT,IToken.Kind.LT, IToken.Kind.LE,IToken.Kind.GT)){
             consume();
-            PowExpr();
+            return PowExpr();
         }
 
-        return;
+        return x;
     }
 
     //Power Expression
-    void PowExpr() throws PLCException {
+    Expr PowExpr() throws PLCException {
 
-        AdditiveExpr();
+        Expr x = AdditiveExpr();
 
         while(isKind(IToken.Kind.EXP)){
             consume();
-            AdditiveExpr();
+            return AdditiveExpr();
         }
-
-        return;
+        return x;
     }
 
     //Additive Expression
-    void AdditiveExpr() throws PLCException {
+    Expr AdditiveExpr() throws PLCException {
 
-        MultExpr();
+        Expr x = MultExpr();
 
         while(isKind(IToken.Kind.PLUS, IToken.Kind.MINUS)){
 
             consume();
-            MultExpr();
+             return MultExpr();
 
         }
-
-        return;
-
+        return x;
     }
 
     //Multiplicative Expression
-    void MultExpr() throws PLCException {
+    Expr MultExpr() throws PLCException {
 
-        UnaryExpr();
+        Expr x = UnaryExpr();
 
         while(isKind(IToken.Kind.TIMES, IToken.Kind.DIV, IToken.Kind.MOD)){
 
             consume();
-            UnaryExpr();
+            return UnaryExpr();
 
         }
+        return x;
     }
 
     //Unary Expressions
-    void UnaryExpr() throws PLCException{
+    Expr UnaryExpr() throws PLCException{
 
         if(isKind(IToken.Kind.BANG, IToken.Kind.RES_atan, IToken.Kind.MINUS, IToken.Kind.RES_sin,IToken.Kind.RES_cos)){
 
             consume();
-            UnaryExpr();
+            return UnaryExpr();
         }
         else{
 
-            PrimaryExpr();
+            return PrimaryExpr();
         }
 
     }
 
     //Primary Expressions
-    void PrimaryExpr() throws PLCException {
+    Expr PrimaryExpr() throws PLCException {
 
-        if(isKind(IToken.Kind.STRING_LIT, IToken.Kind.NUM_LIT, IToken.Kind.RES_rand, IToken.Kind.RES_Z)){
+        switch (t.getKind()) {
 
-            switch(t.getKind()){
-
-                case NUM_LIT -> {
-                    Expr num = new NumLitExpr(t);
-                    parsed = num;
-                }
-                case STRING_LIT -> {
-                    Expr str = new StringLitExpr(t);
-                    parsed = str;
-                }
+            case NUM_LIT -> {
+                return new NumLitExpr(t);
             }
-        }
-        else if(isKind(IToken.Kind.LPAREN)){
+            case STRING_LIT -> {
+                return new StringLitExpr(t);
+            }
 
-            consume();
+            case IDENT -> {
+                return new IdentExpr(t);
+            }
 
-            Expression();
+            case RES_Z -> {
+                return new ZExpr(t);
+            }
 
-            if(isKind(IToken.Kind.RPAREN)){
+            case RES_rand -> {
+                return new RandomExpr(t);
+            }
 
+            case LPAREN -> {
                 consume();
-
+                return Expression();
+            }
+            case RPAREN -> {
+                consume();
+            }
+            default -> {
+                error();
             }
         }
-        else{
-
-            error();
-        }
-
+        return null;
     }
-
 
 
 
