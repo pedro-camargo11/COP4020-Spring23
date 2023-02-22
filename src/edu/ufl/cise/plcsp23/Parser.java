@@ -10,6 +10,7 @@ public class Parser implements IParser{
     IToken t;
     private int current = 0; //keeps track of position
 
+
     //constructor -> passes in only one time
     public Parser(ArrayList<IToken> tokenList) throws PLCException {
         this.tokenList = tokenList;
@@ -21,6 +22,10 @@ public class Parser implements IParser{
     void consume(){
         current++;
         t = tokenList.get(current);
+    }
+
+    void error() throws PLCException{
+        throw new SyntaxException("Syntax error occured");
     }
 
     //Singular token.
@@ -40,6 +45,20 @@ public class Parser implements IParser{
         return false;
     }
 
+    protected void match(IToken.Kind... kinds) throws PLCException{
+
+        for(IToken.Kind k:kinds){
+
+            if(k == t.getKind()){
+                consume();
+                return;
+            }
+
+        }
+
+        error();
+    }
+
     //helper functions
     public IToken peek(){
         return tokenList.get(current);
@@ -51,9 +70,7 @@ public class Parser implements IParser{
         return (peek().getKind() == IToken.Kind.EOF);
     }
 
-    void error() throws PLCException{
-        throw new SyntaxException("Syntax error occured");
-    }
+
     //no error given anymore, go with implementing grammar functions.
     public AST parse() throws PLCException{
 
@@ -75,14 +92,14 @@ public class Parser implements IParser{
         }
     }
 
-    //conditional hasn't been implemented yet
+    //Using match to error check
     Expr ConditionalExpression() throws PLCException{
         IToken firstToken = t;
-        consume();//consume if
+        match(IToken.Kind.RES_if);//match if
         Expr guard = Expression();
-        consume(); //consume ?
+        match(IToken.Kind.QUESTION); //match ?
         Expr trueCase = Expression();
-        consume(); //consume ?
+        match(IToken.Kind.QUESTION); //match ?
         Expr falseCase = Expression();
         return new ConditionalExpr(t, guard, trueCase, falseCase);
     }
@@ -126,7 +143,7 @@ public class Parser implements IParser{
         Expr right = null;
         left = PowExpr();
 
-        while(isKind(IToken.Kind.EQ, IToken.Kind.GT,IToken.Kind.LT, IToken.Kind.LE,IToken.Kind.GT)){
+        while(isKind(IToken.Kind.EQ, IToken.Kind.GT,IToken.Kind.LT, IToken.Kind.LE,IToken.Kind.GE)){
             IToken.Kind op = t.getKind();
             consume();
             right = PowExpr();
@@ -198,6 +215,7 @@ public class Parser implements IParser{
     //Primary Expressions
     Expr PrimaryExpr() throws PLCException {
 
+
         switch (t.getKind()) {
 
             case NUM_LIT -> {
@@ -225,14 +243,17 @@ public class Parser implements IParser{
             }
 
             case LPAREN -> {
-                consume();
-                return Expression();
+
+               match(IToken.Kind.LPAREN);
+               Expr e = Expression();
+               match(IToken.Kind.RPAREN);
+               return e;
+
             }
-            case RPAREN -> {
-                consume();
-            }
+
             default -> {
                 error();
+
             }
         }
         return null;
