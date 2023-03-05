@@ -12,22 +12,10 @@ package edu.ufl.cise.plcsp23.ast;
 
 import edu.ufl.cise.plcsp23.IToken;
 
-public abstract class Expr extends AST {
-	
-	Type type;
+public abstract class Statement extends AST {
 
-	public Expr(IToken firstToken) {
+	public Statement(IToken firstToken) {
 		super(firstToken);
 	}
-
-	public Type getType() {
-		return type;
-	}
-
-	public void setType(Type type) {
-		this.type = type;
-	}
-	
-	
 
 }

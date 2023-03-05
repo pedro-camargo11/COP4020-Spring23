@@ -11,23 +11,29 @@
 package edu.ufl.cise.plcsp23.ast;
 
 import edu.ufl.cise.plcsp23.IToken;
+import edu.ufl.cise.plcsp23.PLCException;
 
-public abstract class Expr extends AST {
-	
-	Type type;
+public class WriteStatement extends Statement {
 
-	public Expr(IToken firstToken) {
+	final Expr e;
+
+	public WriteStatement(IToken firstToken, Expr e) {
 		super(firstToken);
+		this.e = e;
 	}
 
-	public Type getType() {
-		return type;
+	@Override
+	public Object visit(ASTVisitor v, Object arg) throws PLCException {
+		return v.visitWriteStatement(this, arg);
 	}
 
-	public void setType(Type type) {
-		this.type = type;
+	public Expr getE() {
+		return e;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return "StatementWrite [e=" + e + "]";
+	}
 
 }

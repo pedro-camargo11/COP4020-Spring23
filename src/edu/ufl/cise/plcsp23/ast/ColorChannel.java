@@ -12,22 +12,17 @@ package edu.ufl.cise.plcsp23.ast;
 
 import edu.ufl.cise.plcsp23.IToken;
 
-public abstract class Expr extends AST {
-	
-	Type type;
+public enum ColorChannel {
+	red,
+	grn,
+	blu;
 
-	public Expr(IToken firstToken) {
-		super(firstToken);
+	public static ColorChannel getColor(IToken token) {
+		return switch(token.getKind()) {
+		case RES_red -> red;
+		case RES_grn -> grn;
+		case RES_blu -> blu;
+		default -> throw new RuntimeException("error in ColorChannel.getColor, unexpected token kind " + token.getKind());
+		};
 	}
-
-	public Type getType() {
-		return type;
-	}
-
-	public void setType(Type type) {
-		this.type = type;
-	}
-	
-	
-
 }
