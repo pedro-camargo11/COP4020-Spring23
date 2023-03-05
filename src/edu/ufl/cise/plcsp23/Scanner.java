@@ -47,6 +47,10 @@ public class Scanner implements IScanner{
         reservedWords.put("atan", Kind.RES_atan);
         reservedWords.put("if", Kind.RES_if);
         reservedWords.put("while", Kind.RES_while);
+        reservedWords.put("red", Kind.RES_r);
+        reservedWords.put("green", Kind.RES_grn);
+        reservedWords.put("blue", Kind.RES_blu);
+        reservedWords.put("ERROR", Kind.ERROR);
     }
 
 
@@ -513,6 +517,7 @@ public class Scanner implements IScanner{
                         int length = pos - tokenStart;
                         String tokenString = new String (inputChars);
                         tokenString = tokenString.substring(tokenStart, tokenStart+length);
+
                         //check if token is a reserved word
                         if (reservedWords.containsKey(tokenString))
                         {

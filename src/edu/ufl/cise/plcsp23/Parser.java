@@ -3,6 +3,7 @@ import edu.ufl.cise.plcsp23.ast.*;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Parser implements IParser{
 
@@ -12,7 +13,13 @@ public class Parser implements IParser{
 
 
     //constructor -> passes in only one time
-    public Parser(ArrayList<IToken> tokenList) throws PLCException {
+//    public Parser(ArrayList<IToken> tokenList) throws PLCException {
+//        this.tokenList = tokenList;
+//        t = tokenList.get(current);
+//
+//    }
+
+    public Parser(ArrayList<IToken> tokenList) throws LexicalException {
         this.tokenList = tokenList;
         t = tokenList.get(current);
 
@@ -45,6 +52,7 @@ public class Parser implements IParser{
         return false;
     }
 
+    //Match the token and move on to the next.
     protected void match(IToken.Kind... kinds) throws PLCException{
 
         for(IToken.Kind k:kinds){
@@ -78,6 +86,23 @@ public class Parser implements IParser{
 
     }
 
+    //Program -> Type IDENT LPAREN ParamList RPAREN Block
+    Program Program() throws PLCException{
+
+        Type type = Type.getType(t); //get the type
+        consume();
+        match(IToken.Kind.IDENT);
+        Ident ident = new Ident(previous());
+        match(IToken.Kind.LPAREN);
+        List<NameDef> paramList = null;
+        match(IToken.Kind.RPAREN);
+        Block block = null;
+
+        return new Program(t, type, ident, paramList, block);
+
+    }
+
+
     //Expression
     Expr Expression() throws PLCException {
 
@@ -94,7 +119,7 @@ public class Parser implements IParser{
 
     //Using match to error check
     Expr ConditionalExpression() throws PLCException{
-        IToken firstToken = t;
+
         match(IToken.Kind.RES_if);//match if
         Expr guard = Expression();
         match(IToken.Kind.QUESTION); //match ?

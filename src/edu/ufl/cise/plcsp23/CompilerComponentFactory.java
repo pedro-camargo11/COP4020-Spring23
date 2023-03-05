@@ -20,7 +20,25 @@ public class CompilerComponentFactory {
 
 	}
 
-	public static IParser makeAssignment2Parser(String input) throws PLCException {
+
+//This is the method that was used to create the parser for Assignment 2
+//	public static IParser makeAssignment2Parser(String input) throws PLCException {
+//		// create scanner and parser and return the parser
+//		IScanner scanner = makeScanner(input);
+//		ArrayList<IToken> tokenList = new ArrayList<IToken>();
+//		IToken token = scanner.next();
+//		while (token.getKind() != Token.Kind.EOF) {
+//			tokenList.add(token);
+//			token = scanner.next();
+//		}
+//		tokenList.add(token); //this should get EOF token and end parsing
+//		IParser parser = new Parser(tokenList);
+//		return parser;
+//	}
+
+	//This is the method that will be used to create the parser
+	public static IParser makeParser(String input) throws LexicalException {
+
 		// create scanner and parser and return the parser
 		IScanner scanner = makeScanner(input);
 		ArrayList<IToken> tokenList = new ArrayList<IToken>();
@@ -30,8 +48,8 @@ public class CompilerComponentFactory {
 			token = scanner.next();
 		}
 		tokenList.add(token); //this should get EOF token and end parsing
-		IParser parser = new Parser(tokenList);
-		return parser;
+		return new Parser(tokenList);
+
 	}
 
 
