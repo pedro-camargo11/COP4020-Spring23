@@ -1,7 +1,9 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.*;
+import edu.ufl.cise.plcsp23.ast.Dimension;
 
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,19 +88,131 @@ public class Parser implements IParser{
 
     }
 
-    //Program -> Type IDENT LPAREN ParamList RPAREN Block
+    //Program -> Type IDENT LPAREN ParamList RPAREN Block (entry point)
     Program Program() throws PLCException{
 
-        Type type = Type.getType(t); //get the type
-        consume();
+        Type type = Type(); //get the type
         match(IToken.Kind.IDENT);
         Ident ident = new Ident(previous());
         match(IToken.Kind.LPAREN);
-        List<NameDef> paramList = null;
+        List<NameDef> paramList = ParamList();
         match(IToken.Kind.RPAREN);
         Block block = null;
 
         return new Program(t, type, ident, paramList, block);
+
+    }
+
+    //Block Syntax: LCURLY DeclarationList StatementList RCURLY
+    Block Block() throws PLCException{
+
+        match(IToken.Kind.LCURLY);
+        List<Declaration> declarationList = null;
+        List<Statement> statementList = null;
+        match(IToken.Kind.RCURLY);
+        return new Block(t, declarationList, statementList);
+    }
+
+    List<Declaration> DecList() throws PLCException{
+
+        List<Declaration> decList = new ArrayList<>();
+
+        Declaration dec = Declaration();
+
+        //while the next token is a DOT, keep adding to the list
+        while(isKind(IToken.Kind.DOT)){
+            decList.add(dec);
+            dec = Declaration();
+        }
+
+        return decList;
+    }
+
+    List<Statement> StatementList() throws PLCException{
+
+        List<Statement> statementList = new ArrayList<>();
+
+        Statement statement = null; //replace later
+
+        //while the next token is a DOT, keep adding to the list
+        while(isKind(IToken.Kind.DOT)){
+            statementList.add(statement);
+            statement = null; //replace later
+        }
+
+        return statementList;
+    }
+
+    List<NameDef> ParamList() throws PLCException{
+
+        //when there is an empty string (epsilon) -> return null
+        if(isKind(IToken.Kind.RPAREN)){
+            return null;
+        }
+
+        //when there is a non-empty string -> NameDef(,NameDef)*
+        List<NameDef> paramList = new ArrayList<>();
+        paramList.add(NameDef());
+        while(isKind(IToken.Kind.COMMA)){
+            consume();
+            paramList.add(NameDef());
+        }
+        return paramList;
+    }
+
+    //NameDef Syntax: type IDENT | Type Dimension IDENT
+    NameDef NameDef() throws PLCException{
+
+        Type type = Type();
+        if(isKind(IToken.Kind.LSQUARE)){
+            Dimension dimension = Dimension();
+            match(IToken.Kind.IDENT);
+            Ident ident = new Ident(previous());
+            return new NameDef(t, type, dimension, ident);
+        }
+        else{
+            match(IToken.Kind.IDENT);
+            Ident ident = new Ident(previous());
+            return new NameDef(t, type,null ,ident);
+        }
+
+
+    }
+
+    //Dimension Syntax: [Expr, Expr]
+    Dimension Dimension() throws PLCException{
+
+        match(IToken.Kind.LSQUARE);
+        Expr expr = Expression();
+        match(IToken.Kind.COMMA);
+        Expr expr2 = Expression();
+        match(IToken.Kind.RSQUARE);
+        return new Dimension(t, expr, expr2);
+
+    }
+
+    //get the type and consume the token: image, pixel, int, string, void
+    Type Type() throws PLCException{
+        Type type = Type.getType(t);
+        consume();
+        return type;
+    }
+
+    //Declaration Syntax: NameDef | NameDef ASSIGN Expr
+    Declaration Declaration() throws PLCException{
+
+        NameDef namedef = NameDef();
+
+        if(isKind(IToken.Kind.ASSIGN)){
+            match(IToken.Kind.ASSIGN);
+            Expr expr = Expression();
+            return new Declaration(t, namedef, expr);
+        }
+        else{
+            consume();
+            return new Declaration(previous(), namedef, null);
+        }
+
 
     }
 
@@ -267,6 +381,7 @@ public class Parser implements IParser{
                 return new RandomExpr(previous());
             }
 
+            //Parenthesis ()
             case LPAREN -> {
 
                match(IToken.Kind.LPAREN);
@@ -276,11 +391,67 @@ public class Parser implements IParser{
 
             }
 
+            //Predeclared Variables
+            case RES_x,RES_y,RES_a,RES_r -> {
+                consume();
+                return new PredeclaredVarExpr(previous());
+            }
+
+            //Expanded Pixel
+            case LSQUARE -> {
+
+                match(IToken.Kind.LSQUARE);
+                Expr expr1 = Expression();
+                match(IToken.Kind.COMMA);
+                Expr expr2 = Expression();
+                match(IToken.Kind.COMMA);
+                Expr expr3 = Expression();
+                match(IToken.Kind.RSQUARE);
+
+                //return t because of match() function
+                return new ExpandedPixelExpr(t, expr1, expr2, expr3);
+
+            }
+
+            //Pixel Function Expression
+            case RES_x_cart, RES_y_cart, RES_a_polar, RES_r_polar -> {
+
+                IToken.Kind kind = t.getKind();
+
+                PixelSelector selector = selector();
+
+                //return t because of match() function
+                return new PixelFuncExpr(t, kind, selector);
+            }
+
             default -> {
                 error();
 
             }
         }
         return null;
+    }
+
+    //Channel Selector
+    ColorChannel channel() throws PLCException{
+
+        ColorChannel color = ColorChannel.getColor(t);
+        consume();
+
+        return color;
+
+    }
+
+    //Pixel Selector function
+    PixelSelector selector() throws PLCException{
+
+        match(IToken.Kind.LSQUARE);
+        Expr expr1 = Expression();
+        match(IToken.Kind.COMMA);
+        Expr expr2 = Expression();
+        match(IToken.Kind.RSQUARE);
+
+        return new PixelSelector(t,expr1, expr2);
+
     }
 }
