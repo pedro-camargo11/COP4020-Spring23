@@ -84,7 +84,7 @@ public class Parser implements IParser{
     //no error given anymore, go with implementing grammar functions.
     public AST parse() throws PLCException{
 
-        return Expression();
+        return Program();
 
     }
 
@@ -97,7 +97,7 @@ public class Parser implements IParser{
         match(IToken.Kind.LPAREN);
         List<NameDef> paramList = ParamList();
         match(IToken.Kind.RPAREN);
-        Block block = null;
+        Block block = Block();
 
         return new Program(t, type, ident, paramList, block);
 
@@ -107,8 +107,8 @@ public class Parser implements IParser{
     Block Block() throws PLCException{
 
         match(IToken.Kind.LCURLY);
-        List<Declaration> declarationList = null;
-        List<Statement> statementList = null;
+        List<Declaration> declarationList = DecList();
+        List<Statement> statementList = StatementList();
         match(IToken.Kind.RCURLY);
         return new Block(t, declarationList, statementList);
     }
@@ -137,7 +137,7 @@ public class Parser implements IParser{
         //while the next token is a DOT, keep adding to the list
         while(isKind(IToken.Kind.DOT)){
             statementList.add(statement);
-            statement = null; //replace later
+            statement = Statement();
         }
 
         return statementList;
@@ -347,8 +347,27 @@ public class Parser implements IParser{
             return new UnaryExpr(previous(),unaryToken.getKind(),right);
         }
 
-        return PrimaryExpr();
+        return UnaryExpressionPostfix();
 
+    }
+
+    //UnaryExprPostfix::= PrimaryExpr (PixelSelector | ε ) (ChannelSelector | ε )
+    UnaryExprPostfix UnaryExpressionPostfix() throws PLCException {
+        IToken firstToken = t;
+        Expr primary = PrimaryExpr();
+        PixelSelector pixelSelector = null;
+        ColorChannel channelSelector = null;
+        //if token is a '[' we have a pixel selector
+        if (isKind(Token.Kind.LSQUARE)) {
+            match (IToken.Kind.LSQUARE);
+            pixelSelector = selector();
+        }
+        //if token is ":" it is a channel selector
+        if (isKind(IToken.Kind.COLON)){
+            match(IToken.Kind.COLON);
+            channelSelector = channel();
+        }
+        return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
     }
 
     //Primary Expressions
@@ -454,4 +473,54 @@ public class Parser implements IParser{
         return new PixelSelector(t,expr1, expr2);
 
     }
+
+    //LValue ::= IDENT (PixelSelector | ε ) (ChannelSelector | ε )
+    LValue LValue() throws PLCException {
+        IToken firstToken = t;
+        Ident ident = new Ident(t);
+        consume();
+        PixelSelector pixelSelector = null;
+        ColorChannel channelSelector = null;
+        //if token is a '[' we have a pixel selector
+        if (isKind(Token.Kind.LSQUARE)) {
+            match (IToken.Kind.LSQUARE);
+            pixelSelector = selector();
+        }
+        //if token is ":" it is a channel selector
+        if (isKind(IToken.Kind.COLON)){
+            match(IToken.Kind.COLON);
+            channelSelector = channel();
+        }
+        return new LValue (t, ident, pixelSelector, channelSelector);
+    }
+
+    //Statement::= LValue = Expr | write Expr | while Expr Block
+    Statement Statement() throws PLCException {
+        IToken firstToken = t;
+        //case for an assignment statement
+        if (isKind(Token.Kind.IDENT)) {
+            LValue lValue = LValue();
+            match(IToken.Kind.ASSIGN);
+            Expr expr = Expression();
+            return new AssignmentStatement(t, lValue, expr);
+        }
+        //case for a write statement
+        else if (isKind(Token.Kind.RES_write)){
+            match(IToken.Kind.RES_write);
+            Expr expr = Expression();
+            return new WriteStatement(t, expr);
+        }
+        //case for a while statement
+        else if (isKind(Token.Kind.RES_while)){
+            match(IToken.Kind.RES_while);
+            Expr expr = Expression();
+            Block block = Block();
+            return new WhileStatement(t, expr, block);
+        }
+        return null;
+    }
+
+
+
+
 }
