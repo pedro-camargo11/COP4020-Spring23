@@ -123,13 +123,15 @@ public class Parser implements IParser{
             return decList;
         }
 
-        Declaration dec = Declaration();
-        decList.add(dec);
-
         //while the next token is a DOT, keep adding to the list
         while(isKind(IToken.Kind.RES_int, IToken.Kind.RES_string, IToken.Kind.RES_image, IToken.Kind.RES_pixel, IToken.Kind.RES_void)){
-            dec = Declaration();
+            Declaration dec = Declaration();
             decList.add(dec);
+
+            //check to see if it's a DOT, if not then throw an error
+            if(isKind(IToken.Kind.DOT)){
+                match(IToken.Kind.DOT);
+            }
         }
 
         return decList;
@@ -461,6 +463,7 @@ public class Parser implements IParser{
     //Channel Selector
     ColorChannel channel() throws PLCException{
 
+        match(IToken.Kind.COLON);
         ColorChannel color = ColorChannel.getColor(t);
         consume();
 
