@@ -371,9 +371,17 @@ public class Parser implements IParser{
         IToken firstToken = t;
         Expr primary = PrimaryExpr();
         if (isKind(IToken.Kind.LSQUARE)) {
+
             PixelSelector pixelSelector = selector();
-            ColorChannel channelSelector = channel();
-            return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
+
+            if(!(isKind(IToken.Kind.DOT))){
+                ColorChannel channelSelector = channel(); // error
+                return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
+            }
+            else{
+                return new UnaryExprPostfix(firstToken, primary, pixelSelector, null);
+            }
+
         }
 
         return primary;
@@ -474,7 +482,7 @@ public class Parser implements IParser{
     //Pixel Selector function
     PixelSelector selector() throws PLCException{
 
-        match(IToken.Kind.LSQUARE);
+        match (IToken.Kind.LSQUARE);
         Expr expr1 = Expression();
         match(IToken.Kind.COMMA);
         Expr expr2 = Expression();
@@ -493,7 +501,6 @@ public class Parser implements IParser{
         ColorChannel channelSelector = null;
         //if token is a '[' we have a pixel selector
         if (isKind(Token.Kind.LSQUARE)) {
-            match (IToken.Kind.LSQUARE);
             pixelSelector = selector();
         }
         //if token is ":" it is a channel selector
