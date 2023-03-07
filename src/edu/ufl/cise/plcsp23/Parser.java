@@ -115,7 +115,13 @@ public class Parser implements IParser{
 
     List<Declaration> DecList() throws PLCException{
 
+
         List<Declaration> decList = new ArrayList<>();
+
+        //when there is an empty string (epsilon) -> return null
+        if(isKind(IToken.Kind.RCURLY)){
+            return decList;
+        }
 
         Declaration dec = Declaration();
 
@@ -132,7 +138,12 @@ public class Parser implements IParser{
 
         List<Statement> statementList = new ArrayList<>();
 
-        Statement statement = null; //replace later
+        //when there is an empty string (epsilon) -> return null
+        if(isKind(IToken.Kind.RCURLY)){
+            return statementList;
+        }
+
+        Statement statement = Statement();
 
         //while the next token is a DOT, keep adding to the list
         while(isKind(IToken.Kind.DOT)){
@@ -145,13 +156,13 @@ public class Parser implements IParser{
 
     List<NameDef> ParamList() throws PLCException{
 
+        List<NameDef> paramList = new ArrayList<>();
         //when there is an empty string (epsilon) -> return null
         if(isKind(IToken.Kind.RPAREN)){
-            return null;
+            return paramList;
         }
 
         //when there is a non-empty string -> NameDef(,NameDef)*
-        List<NameDef> paramList = new ArrayList<>();
         paramList.add(NameDef());
         while(isKind(IToken.Kind.COMMA)){
             consume();
