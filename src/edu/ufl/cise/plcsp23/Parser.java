@@ -124,11 +124,12 @@ public class Parser implements IParser{
         }
 
         Declaration dec = Declaration();
+        decList.add(dec);
 
         //while the next token is a DOT, keep adding to the list
-        while(isKind(IToken.Kind.DOT)){
-            decList.add(dec);
+        while(isKind(IToken.Kind.RES_int, IToken.Kind.RES_string, IToken.Kind.RES_image, IToken.Kind.RES_pixel, IToken.Kind.RES_void)){
             dec = Declaration();
+            decList.add(dec);
         }
 
         return decList;
