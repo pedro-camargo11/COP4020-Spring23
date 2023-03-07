@@ -454,6 +454,8 @@ public class Parser implements IParser{
 
                 IToken.Kind kind = t.getKind();
 
+                consume();
+
                 PixelSelector selector = selector();
 
                 //return t because of match() function
@@ -481,14 +483,15 @@ public class Parser implements IParser{
 
     //Pixel Selector function
     PixelSelector selector() throws PLCException{
-
+        //maybe we have to save first token here to pass to pixel selector constructor !!!!!
+        IToken firstToken = t;
         match (IToken.Kind.LSQUARE);
         Expr expr1 = Expression();
         match(IToken.Kind.COMMA);
         Expr expr2 = Expression();
         match(IToken.Kind.RSQUARE);
 
-        return new PixelSelector(t,expr1, expr2);
+        return new PixelSelector(firstToken,expr1, expr2);
 
     }
 
@@ -508,7 +511,7 @@ public class Parser implements IParser{
             match(IToken.Kind.COLON);
             channelSelector = channel();
         }
-        return new LValue (t, ident, pixelSelector, channelSelector);
+        return new LValue (firstToken, ident, pixelSelector, channelSelector);
     }
 
     //Statement::= LValue = Expr | write Expr | while Expr Block
@@ -519,20 +522,20 @@ public class Parser implements IParser{
             LValue lValue = LValue();
             match(IToken.Kind.ASSIGN);
             Expr expr = Expression();
-            return new AssignmentStatement(t, lValue, expr);
+            return new AssignmentStatement(firstToken, lValue, expr);
         }
         //case for a write statement
         else if (isKind(Token.Kind.RES_write)){
             match(IToken.Kind.RES_write);
             Expr expr = Expression();
-            return new WriteStatement(t, expr);
+            return new WriteStatement(firstToken, expr);
         }
         //case for a while statement
         else if (isKind(Token.Kind.RES_while)){
             match(IToken.Kind.RES_while);
             Expr expr = Expression();
             Block block = Block();
-            return new WhileStatement(t, expr, block);
+            return new WhileStatement(firstToken, expr, block);
         }
         return null;
     }
