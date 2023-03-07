@@ -119,7 +119,7 @@ public class Parser implements IParser{
         List<Declaration> decList = new ArrayList<>();
 
         //when there is an empty string (epsilon) -> return null
-        if(isKind(IToken.Kind.RCURLY)){
+        if(isKind(IToken.Kind.RCURLY, IToken.Kind.IDENT, IToken.Kind.RES_write, IToken.Kind.RES_while)){
             return decList;
         }
 
@@ -144,11 +144,12 @@ public class Parser implements IParser{
         }
 
         Statement statement = Statement();
-
-        //while the next token is a DOT, keep adding to the list
-        while(isKind(IToken.Kind.DOT)){
-            statementList.add(statement);
+        match(IToken.Kind.DOT);
+        statementList.add(statement);
+        while (!(isKind(IToken.Kind.RCURLY))) {
             statement = Statement();
+            statementList.add(statement);
+            match(IToken.Kind.DOT);
         }
 
         return statementList;
@@ -363,22 +364,16 @@ public class Parser implements IParser{
     }
 
     //UnaryExprPostfix::= PrimaryExpr (PixelSelector | ε ) (ChannelSelector | ε )
-    UnaryExprPostfix UnaryExpressionPostfix() throws PLCException {
+    Expr UnaryExpressionPostfix() throws PLCException {
         IToken firstToken = t;
         Expr primary = PrimaryExpr();
-        PixelSelector pixelSelector = null;
-        ColorChannel channelSelector = null;
-        //if token is a '[' we have a pixel selector
-        if (isKind(Token.Kind.LSQUARE)) {
-            match (IToken.Kind.LSQUARE);
-            pixelSelector = selector();
+        if (isKind(IToken.Kind.LSQUARE)) {
+            PixelSelector pixelSelector = selector();
+            ColorChannel channelSelector = channel();
+            return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
         }
-        //if token is ":" it is a channel selector
-        if (isKind(IToken.Kind.COLON)){
-            match(IToken.Kind.COLON);
-            channelSelector = channel();
-        }
-        return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
+
+        return primary;
     }
 
     //Primary Expressions
