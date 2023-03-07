@@ -33,7 +33,7 @@ public class Parser implements IParser{
         t = tokenList.get(current);
     }
 
-    void error() throws PLCException{
+    void error() throws SyntaxException{
         throw new SyntaxException("Syntax error occured");
     }
 
@@ -137,7 +137,7 @@ public class Parser implements IParser{
         return decList;
     }
 
-    List<Statement> StatementList() throws PLCException{
+    List<Statement> StatementList() throws PLCException {
 
         List<Statement> statementList = new ArrayList<>();
 
@@ -147,11 +147,17 @@ public class Parser implements IParser{
         }
 
         Statement statement = Statement();
+        if (!isKind(IToken.Kind.DOT)) {
+            error();
+        }
         match(IToken.Kind.DOT);
         statementList.add(statement);
         while (!(isKind(IToken.Kind.RCURLY))) {
             statement = Statement();
             statementList.add(statement);
+            if (!isKind(IToken.Kind.DOT)) {
+                error();
+            }
             match(IToken.Kind.DOT);
         }
 
@@ -208,9 +214,15 @@ public class Parser implements IParser{
 
     //get the type and consume the token: image, pixel, int, string, void
     Type Type() throws PLCException{
-        Type type = Type.getType(t);
-        consume();
-        return type;
+        if (isKind(IToken.Kind.RES_image, IToken.Kind.RES_pixel, IToken.Kind.RES_int, IToken.Kind.RES_string, IToken.Kind.RES_void)) {
+            Type type = Type.getType(t);
+            consume();
+            return type;
+        }
+        else {
+            error();
+            return null;
+        }
     }
 
     //Declaration Syntax: NameDef | NameDef ASSIGN Expr
