@@ -73,7 +73,13 @@ public class Parser implements IParser{
     //no error given anymore, go with implementing grammar functions.
     public AST parse() throws PLCException{
 
-        return Program();
+        AST program = Program();
+
+        //check for EOF
+        if(t.getKind() != IToken.Kind.EOF){
+            error("Syntax error: expected EOF but got " + t.getKind() + " instead.");
+        }
+        return program;
 
     }
 
