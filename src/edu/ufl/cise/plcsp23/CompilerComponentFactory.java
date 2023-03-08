@@ -37,19 +37,25 @@ public class CompilerComponentFactory {
 	}
 
 	//This is the method that will be used to create the parser
-	public static IParser makeParser(String input) throws LexicalException {
+	public static IParser makeParser(String input) throws LexicalException, SyntaxException {
 
 		// create scanner and parser and return the parser
 		IScanner scanner = makeScanner(input);
 		ArrayList<IToken> tokenList = new ArrayList<IToken>();
-		IToken token = scanner.next();
-		while (token.getKind() != Token.Kind.EOF) {
-			tokenList.add(token);
-			token = scanner.next();
-		}
-		tokenList.add(token); //this should get EOF token and end parsing
-		return new Parser(tokenList);
 
+		try {
+			IToken token = scanner.next();
+			while (token.getKind() != Token.Kind.EOF) {
+				tokenList.add(token);
+				token = scanner.next();
+			}
+			tokenList.add(token); //this should get EOF token and end parsing
+		}
+		catch (LexicalException e) {
+			throw new SyntaxException("Syntax error occured");
+		}
+
+		return new Parser(tokenList);
 	}
 
 
