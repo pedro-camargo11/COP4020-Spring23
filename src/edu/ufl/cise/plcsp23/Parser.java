@@ -3,13 +3,13 @@ import edu.ufl.cise.plcsp23.ast.*;
 import edu.ufl.cise.plcsp23.ast.Dimension;
 
 
-import java.awt.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Parser implements IParser{
 
-    public ArrayList<IToken> tokenList;
+    IScanner scanner;
     IToken t;
     private int current = 0; //keeps track of position
 
@@ -21,38 +21,21 @@ public class Parser implements IParser{
 //
 //    }
 
-    public Parser(ArrayList<IToken> tokenList) throws LexicalException {
-        this.tokenList = tokenList;
-        t = tokenList.get(current);
-
-    }
 
     //overloaded constructor of Parser that takes in the scanner instead of a tokenList
-    public Parser (IScanner scanner) throws SyntaxException {
-        this.tokenList = new ArrayList<IToken>();
-        IToken token = null;
-        try {
-            token = scanner.next();
-            while (token.getKind() != Token.Kind.EOF) {
-                tokenList.add(token);
-                token = scanner.next();
-            }
-            tokenList.add(token); //this should get EOF token and end parsing
-        }
-        catch (LexicalException e) {
-            throw new SyntaxException("Syntax error occured");
-        }
-        t = tokenList.get(current);
+    public Parser (IScanner scanner) throws LexicalException {
+
+        this.scanner = scanner;
+        t = scanner.next();
     }
 
     //consume the token and move on to the next.
-    void consume(){
-        current++;
-        t = tokenList.get(current);
+    void consume() throws LexicalException{
+        t = scanner.next();
     }
 
-    void error() throws SyntaxException{
-        throw new SyntaxException("Syntax error occured");
+    void error(String mes) throws SyntaxException{
+        throw new SyntaxException(mes);
     }
 
     //Singular token.
@@ -84,12 +67,7 @@ public class Parser implements IParser{
 
         }
 
-        error();
-    }
-
-    //helper functions
-    public IToken previous(){
-        return tokenList.get(current-1);
+        error("Syntax error: expected " + kinds + " but got " + t.getKind() + " instead.");
     }
 
     //no error given anymore, go with implementing grammar functions.
@@ -103,8 +81,9 @@ public class Parser implements IParser{
     Program Program() throws PLCException{
 
         Type type = Type(); //get the type
+        IToken identToken = t;
         match(IToken.Kind.IDENT);
-        Ident ident = new Ident(previous());
+        Ident ident = new Ident(identToken);
         match(IToken.Kind.LPAREN);
         List<NameDef> paramList = ParamList();
         match(IToken.Kind.RPAREN);
@@ -129,7 +108,7 @@ public class Parser implements IParser{
 
         List<Declaration> decList = new ArrayList<>();
 
-        //when there is an empty string (epsilon) -> return null
+        //when there is an empty string (epsilon) -> return empty decList
         if(isKind(IToken.Kind.RCURLY, IToken.Kind.IDENT, IToken.Kind.RES_write, IToken.Kind.RES_while)){
             return decList;
         }
@@ -152,7 +131,7 @@ public class Parser implements IParser{
 
         List<Statement> statementList = new ArrayList<>();
 
-        //when there is an empty string (epsilon) -> return null
+        //when there is an empty string (epsilon) -> return empty statementList
         if(isKind(IToken.Kind.RCURLY)){
             return statementList;
         }
@@ -162,7 +141,7 @@ public class Parser implements IParser{
 
             //error check
             if (!isKind(IToken.Kind.DOT)) {
-                error();
+                error("Syntax error: expected a DOT but got " + t.getKind() + " instead.");
             }
 
             match(IToken.Kind.DOT);
@@ -175,7 +154,7 @@ public class Parser implements IParser{
     List<NameDef> ParamList() throws PLCException{
 
         List<NameDef> paramList = new ArrayList<>();
-        //when there is an empty string (epsilon) -> return null
+        //when there is an empty string (epsilon) -> empty paramList
         if(isKind(IToken.Kind.RPAREN)){
             return paramList;
         }
@@ -192,16 +171,19 @@ public class Parser implements IParser{
     //NameDef Syntax: type IDENT | Type Dimension IDENT
     NameDef NameDef() throws PLCException{
 
+        IToken identToken;
         Type type = Type();
         if(isKind(IToken.Kind.LSQUARE)){
             Dimension dimension = Dimension();
+            identToken = t;
             match(IToken.Kind.IDENT);
-            Ident ident = new Ident(previous());
+            Ident ident = new Ident(identToken);
             return new NameDef(t, type, dimension, ident);
         }
         else{
+            identToken = t;
             match(IToken.Kind.IDENT);
-            Ident ident = new Ident(previous());
+            Ident ident = new Ident(identToken);
             return new NameDef(t, type,null ,ident);
         }
 
@@ -228,7 +210,7 @@ public class Parser implements IParser{
             return type;
         }
         else {
-            error();
+            error("Syntax error: expected a type but got " + t.getKind() + " instead.");
             return null;
         }
     }
@@ -245,7 +227,7 @@ public class Parser implements IParser{
         }
         else{
             consume();
-            return new Declaration(previous(), namedef, null);
+            return new Declaration(t, namedef, null);
         }
 
 
@@ -280,6 +262,7 @@ public class Parser implements IParser{
     //LogicalOrExpression
     Expr OrExpression() throws PLCException {
 
+        IToken firstToken = t;
         Expr left = null;
         Expr right = null;
         left = AndExpression();
@@ -288,7 +271,7 @@ public class Parser implements IParser{
             IToken.Kind op = t.getKind();
             consume();
             right = AndExpression();
-            left = new BinaryExpr(previous(), left, op, right);
+            left = new BinaryExpr(firstToken, left, op, right);
         }
         return left;
     }
@@ -297,13 +280,14 @@ public class Parser implements IParser{
     Expr AndExpression() throws PLCException {
         Expr left = null;
         Expr right = null;
+        IToken firstToken = t;
         left =  CompareExpr();
 
         while(isKind(IToken.Kind.BITAND,IToken.Kind.AND)){
             IToken.Kind op = t.getKind();
             consume();
             right = CompareExpr();
-            left = new BinaryExpr (previous(), left, op, right);
+            left = new BinaryExpr (firstToken, left, op, right);
         }
         return left;
 
@@ -314,13 +298,14 @@ public class Parser implements IParser{
 
         Expr left = null;
         Expr right = null;
+        IToken firstToken = t;
         left = PowExpr();
 
         while(isKind(IToken.Kind.EQ, IToken.Kind.GT,IToken.Kind.LT, IToken.Kind.LE,IToken.Kind.GE)){
             IToken.Kind op = t.getKind();
             consume();
             right = PowExpr();
-            left = new BinaryExpr (previous(), left, op, right);
+            left = new BinaryExpr (firstToken, left, op, right);
         }
         return left;
     }
@@ -329,13 +314,14 @@ public class Parser implements IParser{
     Expr PowExpr() throws PLCException {
         Expr left = null;
         Expr right = null;
+        IToken firstToken = t;
         left = AdditiveExpr();
 
         while(isKind(IToken.Kind.EXP)){
             IToken.Kind op = t.getKind();
             consume();
             right = PowExpr();
-            left = new BinaryExpr (previous(), left, op, right);
+            left = new BinaryExpr (firstToken, left, op, right);
         }
         return left;
     }
@@ -344,13 +330,14 @@ public class Parser implements IParser{
     Expr AdditiveExpr() throws PLCException {
         Expr left = null;
         Expr right = null;
+        IToken firstToken = t;
         left = MultExpr();
 
         while(isKind(IToken.Kind.PLUS, IToken.Kind.MINUS)){
             IToken.Kind op = t.getKind();
             consume();
             right = MultExpr();
-            left = new BinaryExpr (previous(), left, op, right);
+            left = new BinaryExpr (firstToken, left, op, right);
         }
         return left;
     }
@@ -359,13 +346,14 @@ public class Parser implements IParser{
     Expr MultExpr() throws PLCException {
         Expr left = null;
         Expr right = null;
+        IToken firstToken = t;
         left = UnaryExpression();
 
         while(isKind(IToken.Kind.TIMES, IToken.Kind.DIV, IToken.Kind.MOD)){
             IToken.Kind op = t.getKind();
             consume();
             right = UnaryExpression();
-            left = new BinaryExpr (previous(), left, op, right);
+            left = new BinaryExpr (firstToken, left, op, right);
         }
         return left;
     }
@@ -374,11 +362,12 @@ public class Parser implements IParser{
     Expr UnaryExpression() throws PLCException{
 
         Expr right = null;
+        IToken firstToken = t;
         if(isKind(IToken.Kind.BANG, IToken.Kind.RES_atan, IToken.Kind.MINUS, IToken.Kind.RES_sin,IToken.Kind.RES_cos)){
             IToken unaryToken = t; // reassign
             consume();
             right = UnaryExpression();
-            return new UnaryExpr(previous(),unaryToken.getKind(),right);
+            return new UnaryExpr(firstToken,unaryToken.getKind(),right);
         }
 
         return UnaryExpressionPostfix();
@@ -413,27 +402,32 @@ public class Parser implements IParser{
         switch (t.getKind()) {
 
             case NUM_LIT -> {
+                IToken num_lit = t;
                 consume();
-                return new NumLitExpr(previous());
+                return new NumLitExpr(num_lit);
             }
             case STRING_LIT -> {
+                IToken string_lit = t;
                 consume();
-                return new StringLitExpr(previous());
+                return new StringLitExpr(string_lit);
             }
 
             case IDENT ->{
+                IToken ident = t;
                 consume();
-                return new IdentExpr(previous());
+                return new IdentExpr(ident);
             }
 
             case RES_Z -> {
+                IToken z_token = t;
                 consume();
-                return new ZExpr(previous());
+                return new ZExpr(z_token);
             }
 
             case RES_rand -> {
+                IToken rand_token = t;
                 consume();
-                return new RandomExpr(previous());
+                return new RandomExpr(rand_token);
             }
 
             //Parenthesis ()
@@ -448,8 +442,9 @@ public class Parser implements IParser{
 
             //Predeclared Variables
             case RES_x,RES_y,RES_a,RES_r -> {
+                IToken predeclared = t;
                 consume();
-                return new PredeclaredVarExpr(previous());
+                return new PredeclaredVarExpr(predeclared);
             }
 
             //Expanded Pixel
@@ -483,7 +478,7 @@ public class Parser implements IParser{
                 return new PixelFuncExpr(firstToken, kind, selector);
             }
 
-            default -> error();
+            default -> error("Invalid Primary Expression");
         }
         return null;
     }
@@ -555,6 +550,7 @@ public class Parser implements IParser{
             Block block = Block();
             return new WhileStatement(firstToken, expr, block);
         }
+        error("Invalid statement");
         return null;
     }
 
