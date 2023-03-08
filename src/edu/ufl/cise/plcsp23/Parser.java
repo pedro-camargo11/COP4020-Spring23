@@ -70,16 +70,9 @@ public class Parser implements IParser{
     }
 
     //helper functions
-    public IToken peek(){
-        return tokenList.get(current);
-    }
     public IToken previous(){
         return tokenList.get(current-1);
     }
-    public boolean isAtEnd(){
-        return (peek().getKind() == IToken.Kind.EOF);
-    }
-
 
     //no error given anymore, go with implementing grammar functions.
     public AST parse() throws PLCException{
@@ -146,19 +139,16 @@ public class Parser implements IParser{
             return statementList;
         }
 
-        Statement statement = Statement();
-        if (!isKind(IToken.Kind.DOT)) {
-            error();
-        }
-        match(IToken.Kind.DOT);
-        statementList.add(statement);
         while (!(isKind(IToken.Kind.RCURLY))) {
-            statement = Statement();
-            statementList.add(statement);
+            Statement statement = Statement();
+
+            //error check
             if (!isKind(IToken.Kind.DOT)) {
                 error();
             }
+
             match(IToken.Kind.DOT);
+            statementList.add(statement);
         }
 
         return statementList;
@@ -242,7 +232,6 @@ public class Parser implements IParser{
 
 
     }
-
 
     //Expression
     Expr Expression() throws PLCException {
@@ -387,7 +376,7 @@ public class Parser implements IParser{
             PixelSelector pixelSelector = selector();
 
             if(!(isKind(IToken.Kind.DOT))){
-                ColorChannel channelSelector = channel(); // error
+                ColorChannel channelSelector = channel();
                 return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
             }
             else{
@@ -448,6 +437,7 @@ public class Parser implements IParser{
             //Expanded Pixel
             case LSQUARE -> {
 
+                IToken firstToken = t;
                 match(IToken.Kind.LSQUARE);
                 Expr expr1 = Expression();
                 match(IToken.Kind.COMMA);
@@ -457,13 +447,14 @@ public class Parser implements IParser{
                 match(IToken.Kind.RSQUARE);
 
                 //return t because of match() function
-                return new ExpandedPixelExpr(t, expr1, expr2, expr3);
+                return new ExpandedPixelExpr(firstToken, expr1, expr2, expr3);
 
             }
 
             //Pixel Function Expression
             case RES_x_cart, RES_y_cart, RES_a_polar, RES_r_polar -> {
 
+                IToken firstToken = t;
                 IToken.Kind kind = t.getKind();
 
                 consume();
@@ -471,13 +462,10 @@ public class Parser implements IParser{
                 PixelSelector selector = selector();
 
                 //return t because of match() function
-                return new PixelFuncExpr(t, kind, selector);
+                return new PixelFuncExpr(firstToken, kind, selector);
             }
 
-            default -> {
-                error();
-
-            }
+            default -> error();
         }
         return null;
     }
