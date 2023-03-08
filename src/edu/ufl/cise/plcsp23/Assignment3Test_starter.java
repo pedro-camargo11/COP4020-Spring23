@@ -936,4 +936,30 @@ class Assignment3Test_starter {
 		});
 	}
 
+	@Test
+	void test15() throws PLCException {
+		String input = """
+ 			string s(){
+ 				xx = 22
+ 			}
+ 			""";
+		assertThrows(SyntaxException.class, () -> {
+			@SuppressWarnings("unused")
+			AST ast = getAST(input);
+		});
+	}
+
+	@Test
+	void test16() throws PLCException {
+		String input = """
+ 			int s(){
+ 				xx = 22;
+ 			}
+ 			""";
+		assertThrows(LexicalException.class, () -> {
+			@SuppressWarnings("unused")
+			AST ast = getAST(input);
+		});
+	}
+
 }
