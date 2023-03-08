@@ -48,8 +48,8 @@ public class Scanner implements IScanner{
         reservedWords.put("if", Kind.RES_if);
         reservedWords.put("while", Kind.RES_while);
         reservedWords.put("red", Kind.RES_red);
-        reservedWords.put("green", Kind.RES_grn);
-        reservedWords.put("blue", Kind.RES_blu);
+        reservedWords.put("grn", Kind.RES_grn);
+        reservedWords.put("blu", Kind.RES_blu);
         reservedWords.put("ERROR", Kind.ERROR);
     }
 
