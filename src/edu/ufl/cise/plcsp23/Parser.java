@@ -27,6 +27,24 @@ public class Parser implements IParser{
 
     }
 
+    //overloaded constructor of Parser that takes in the scanner instead of a tokenList
+    public Parser (IScanner scanner) throws SyntaxException {
+        this.tokenList = new ArrayList<IToken>();
+        IToken token = null;
+        try {
+            token = scanner.next();
+            while (token.getKind() != Token.Kind.EOF) {
+                tokenList.add(token);
+                token = scanner.next();
+            }
+            tokenList.add(token); //this should get EOF token and end parsing
+        }
+        catch (LexicalException e) {
+            throw new SyntaxException("Syntax error occured");
+        }
+        t = tokenList.get(current);
+    }
+
     //consume the token and move on to the next.
     void consume(){
         current++;

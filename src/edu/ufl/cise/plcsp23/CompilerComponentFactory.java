@@ -41,22 +41,9 @@ public class CompilerComponentFactory {
 
 		// create scanner and parser and return the parser
 		IScanner scanner = makeScanner(input);
-		ArrayList<IToken> tokenList = new ArrayList<IToken>();
-
-		try {
-			IToken token = scanner.next();
-			while (token.getKind() != Token.Kind.EOF) {
-				tokenList.add(token);
-				token = scanner.next();
-			}
-			tokenList.add(token); //this should get EOF token and end parsing
-		}
-		catch (LexicalException e) {
-			throw new SyntaxException("Syntax error occured");
-		}
-
-		return new Parser(tokenList);
+		return new Parser(scanner);
 	}
+
 
 
 }
