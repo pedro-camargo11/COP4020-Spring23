@@ -37,6 +37,17 @@ public class Declaration extends AST {
 		return initializer;
 	}
 
+	public boolean isAssigned()
+	{
+		return initializer != null;
+	}
+
+	public Type getType()
+	{
+		//not sure if this is correct
+		return initializer.getType();
+	}
+
 	@Override
 	public String toString() {
 		return "Declaration [nameDef=" + nameDef + ", initializer=" + initializer + "]";

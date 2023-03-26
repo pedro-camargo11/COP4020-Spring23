@@ -12,6 +12,7 @@ package edu.ufl.cise.plcsp23;
 
 import java.util.ArrayList;
 import edu.ufl.cise.plcsp23.IToken;
+import edu.ufl.cise.plcsp23.ast.ASTVisitor;
 
 public class CompilerComponentFactory {
 	public static IScanner makeScanner(String input) {
@@ -34,6 +35,12 @@ public class CompilerComponentFactory {
 		// create scanner and parser and return the parser
 		IScanner scanner = makeScanner(input);
 		return new Parser(scanner);
+	}
+
+	public static ASTVisitor makeTypeChecker() {
+		//Code to instantiate and return an ASTVisitor for type checking
+		// return null for now. Can't instantiate an ASTVisitor
+		return null;
 	}
 
 
