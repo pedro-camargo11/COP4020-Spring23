@@ -5,7 +5,10 @@ import java.util.Stack;
 
 public class TypeCheck implements ASTVisitor {
 
-
+    SymbolTable symbolTable;
+    public TypeCheck(){
+        symbolTable = new SymbolTable();
+    }
 
 
     //Create a symbol table to store the scope and declaration.
@@ -39,14 +42,24 @@ public class TypeCheck implements ASTVisitor {
         }
 
 
-        public Declaration lookup(String name) {
+        public Declaration lookup(Stringgit  name) {
             return symbolTable.peek().get(name);
         }
 
-    }
+        //helper method used to perform checks in visitor methods:
+        //i.e. check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
+        //i.e. check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
+        public boolean check (boolean checkBool, IdentExpr identExpr, String message) {
+            //not entirely sure if i need to do anything checks with the identExpr in this yet.
+            if (!checkBool){
+                System.out.println(message);
+                return false;
+            }
+            return true;
+        }
 
-    //create a symbol table object.
-    SymbolTable symbolTable = new SymbolTable();
+
+    }
 
 
     @Override
@@ -62,6 +75,20 @@ public class TypeCheck implements ASTVisitor {
         stringLitExpr.setType(Type.STRING);
         return Type.STRING;
     }
+
+    @Override
+    public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
+        String name = identExpr.getName();
+        Declaration dec = symbolTable.lookup(name);
+        symbolTable.check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
+        symbolTable.check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
+        //identExpr.setDec(dec); save declaration it will be useful later
+        Type type = dec.getType();
+        identExpr.setType(type);
+        return type;
+
+    }
+
 
     @Override
     public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
