@@ -541,7 +541,7 @@ public class Parser implements IParser{
         return new LValue (firstToken, ident, pixelSelector, channelSelector);
     }
 
-    //Statement::= LValue = Expr | write Expr | while Expr Block
+    //Statement::= LValue = Expr | write Expr | while Expr Block | :Expr
     Statement Statement() throws PLCException {
         IToken firstToken = t;
         //case for an assignment statement
@@ -563,6 +563,13 @@ public class Parser implements IParser{
             Expr expr = Expression();
             Block block = Block();
             return new WhileStatement(firstToken, expr, block);
+        }
+        //case for return statement
+        else if (isKind(Token.Kind.COLON)){
+
+            match(IToken.Kind.COLON);
+            Expr expr = Expression();
+            return new ReturnStatement(firstToken, expr);
         }
         error("Invalid statement");
         return null;
