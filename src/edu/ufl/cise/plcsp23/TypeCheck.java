@@ -43,6 +43,100 @@ public class TypeCheck implements ASTVisitor {
             return symbolTable.peek().get(name);
         }
 
+    }
+
+    //create a symbol table object.
+    SymbolTable symbolTable = new SymbolTable();
+
+
+    @Override
+    public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
+
+        numLitExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    @Override
+    public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
+
+        stringLitExpr.setType(Type.STRING);
+        return Type.STRING;
+    }
+
+    @Override
+    public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
+
+        zExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    @Override
+    public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
+
+        randomExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    @Override
+    public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
+
+        predeclaredVarExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    @Override
+    public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
+
+        return null;
+    }
+
+    @Override
+    public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
+
+        pixelFuncExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    //look for check method in pulling Pedros code
+    @Override
+    public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException{
+
+        IToken.Kind op = unaryExpr.getOp();
+        Type rightType = (Type) unaryExpr.getE().visit(this, arg);
+        Type resultType = null;
+
+       switch(op){
+
+           case BANG -> {
+               if(rightType == Type.INT){
+                   resultType = Type.INT;
+               }
+               else if(rightType == Type.STRING){
+                   resultType = Type.STRING;
+               }
+               else{
+                   throw new TypeCheckException("Type mismatch in UnaryExpr" + unaryExpr.getFirstToken().getSourceLocation().column());
+               }
+           }
+
+           case MINUS, RES_cos, RES_sin, RES_atan -> {
+                if(rightType == Type.INT){
+                     resultType = Type.INT;
+                }
+                else{
+                     throw new TypeCheckException("Type mismatch in UnaryExpr" + unaryExpr.getFirstToken().getSourceLocation().column());
+                }
+
+           }
+
+           default -> throw new TypeCheckException("Type mismatch in UnaryExpr" + unaryExpr.getFirstToken().getSourceLocation().column());
+
+       }
+
+       unaryExpr.setType(resultType);
+       return resultType;
 
     }
+
+
 }
