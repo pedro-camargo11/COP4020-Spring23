@@ -42,23 +42,22 @@ public class TypeCheck implements ASTVisitor {
         }
 
 
-        public Declaration lookup(Stringgit  name) {
+        public Declaration lookup(String  name) {
             return symbolTable.peek().get(name);
         }
 
-        //helper method used to perform checks in visitor methods:
-        //i.e. check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
-        //i.e. check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
-        public boolean check (boolean checkBool, IdentExpr identExpr, String message) {
-            //not entirely sure if i need to do anything checks with the identExpr in this yet.
-            if (!checkBool){
-                System.out.println(message);
-                return false;
-            }
-            return true;
+    }
+
+    //helper method used to perform checks in visitor methods:
+    //i.e. check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
+    //i.e. check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
+    public boolean check (boolean checkBool, IdentExpr identExpr, String message) {
+        //not entirely sure if i need to do anything checks with the identExpr in this yet.
+        if (!checkBool){
+            System.out.println(message);
+            return false;
         }
-
-
+        return true;
     }
 
 
@@ -111,12 +110,14 @@ public class TypeCheck implements ASTVisitor {
         return Type.INT;
     }
 
+    //Name def
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
 
         return null;
     }
 
+    //PixelFunctionExpression: this needs to be worked on
     @Override
     public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
 
@@ -124,7 +125,36 @@ public class TypeCheck implements ASTVisitor {
         return Type.INT;
     }
 
-    //look for check method in pulling Pedros code
+    //Conditional Expression
+    @Override
+    public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException{
+
+        Type gaurdType = (Type) conditionalExpr.getGuard().visit(this, arg);
+        Type trueType = (Type) conditionalExpr.getTrueCase().visit(this, arg);
+        Type falseType = (Type) conditionalExpr.getFalseCase().visit(this, arg);
+        Type resultType = null;
+
+        if(gaurdType == Type.INT){
+
+            if (trueType == falseType) {
+
+                resultType = trueType;
+            }
+            else{
+
+                throw new TypeCheckException("Type mismatch in ConditionalExpr" + conditionalExpr.getFirstToken().getSourceLocation().column());
+            }
+        }
+        else{
+
+            throw new TypeCheckException("Type mismatch in ConditionalExpr" + conditionalExpr.getFirstToken().getSourceLocation().column());
+        }
+
+        return resultType;
+
+    }
+
+    //UnaryExpression: look for check method in pulling Pedros code
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException{
 
@@ -162,6 +192,76 @@ public class TypeCheck implements ASTVisitor {
 
        unaryExpr.setType(resultType);
        return resultType;
+
+    }
+
+    //Dimension
+    @Override
+    public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
+
+        Type widthType = (Type) dimension.getWidth().visit(this, arg);
+        Type heightType = (Type) dimension.getHeight().visit(this, arg);
+
+
+        //return true if both are ints otherwise error out.
+        if(widthType == Type.INT && heightType == Type.INT){
+
+            return true;
+        }
+        else{
+            throw new TypeCheckException("Type mismatch in Dimension" + dimension.getFirstToken().getSourceLocation().column());
+        }
+
+    }
+
+    //PixelSelector
+    @Override
+    public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
+
+        Type xType = (Type) pixelSelector.getX().visit(this, arg);
+        Type yType = (Type) pixelSelector.getY().visit(this, arg);
+
+        //return true if both are ints otherwise error out.
+        if(xType == Type.INT && yType == Type.INT){
+
+            return true;
+        }
+        else if (xType == null && yType == null){
+            return false;
+        }
+        else{
+            throw new TypeCheckException("Type mismatch in PixelSelector" + pixelSelector.getFirstToken().getSourceLocation().column());
+        }
+
+    }
+
+    @Override
+    public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
+
+        Type redType = (Type) expandedPixelExpr.getRedExpr().visit(this, arg);
+        Type greenType = (Type) expandedPixelExpr.getGrnExpr().visit(this, arg);
+        Type blueType = (Type) expandedPixelExpr.getBluExpr().visit(this, arg);
+        Type resultType = null;
+
+        //return true if all are ints otherwise error out.
+        if(redType == Type.INT && greenType == Type.INT && blueType == Type.INT){
+
+            resultType = Type.INT;
+        }
+        else{
+            throw new TypeCheckException("Type mismatch in ExpandedPixelExpr" + expandedPixelExpr.getFirstToken().getSourceLocation().column());
+        }
+
+        return resultType;
+
+    }
+
+    @Override
+    public Object visitWriteStatement(WriteStatement writeStatement, Object arg) throws PLCException {
+
+        Type type = (Type) writeStatement.getE().visit(this, arg);
+
+        return type;
 
     }
 
