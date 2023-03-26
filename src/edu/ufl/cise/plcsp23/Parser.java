@@ -398,6 +398,14 @@ public class Parser implements IParser{
 
         }
 
+        //(ChannelSelector | ε )
+        else if(isKind(IToken.Kind.COLON)){
+
+            ColorChannel channelSelector = channel();
+            return new UnaryExprPostfix(firstToken, primary, null, channelSelector);
+
+        }
+
         return primary;
     }
 
