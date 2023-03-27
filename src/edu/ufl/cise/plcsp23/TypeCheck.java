@@ -306,5 +306,105 @@ public class TypeCheck implements ASTVisitor {
 
     }
 
+    @Override
+    public Object visitBinaryExpr(BinaryExpr binaryExpression, Object arg) throws PLCException {
+
+        Type leftType = (Type) binaryExpression.getLeft().visit(this, arg);
+        Type rightType = (Type) binaryExpression.getRight().visit(this, arg);
+        Type resultType = null;
+
+        IToken.Kind op = binaryExpression.getOp();
+
+        switch(op){
+            case BANG, BITAND ->{
+                if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
+                    resultType = Type.PIXEL;
+                } else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+            case OR, AND , LT, GT, LE, GE-> {
+                if (leftType == Type.INT && rightType == Type.INT) {
+                    resultType = Type.INT;
+                } else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+
+            case EQ ->{
+                if (leftType == Type.INT && rightType == Type.INT) {
+                    resultType = Type.INT;
+                } else if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
+                    resultType = Type.INT;
+                } else if (leftType == Type.IMAGE && rightType == Type.IMAGE) {
+                    resultType = Type.INT;
+                } else if (leftType == Type.STRING && rightType == Type.STRING) {
+                    resultType = Type.INT;
+                } else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+
+            case EXP ->{
+                if (leftType == Type.INT && rightType == Type.INT) {
+                    resultType = Type.INT;
+                }
+                if (leftType == Type.PIXEL && rightType == Type.INT) {
+                    resultType = Type.PIXEL;
+                }
+                else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+
+            case PLUS -> {
+                if (leftType == Type.INT && rightType == Type.INT) {
+                    resultType = Type.INT;
+                } else if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
+                    resultType = Type.PIXEL;
+                } else if (leftType == Type.IMAGE && rightType == Type.IMAGE) {
+                    resultType = Type.IMAGE;
+                } else if (leftType == Type.STRING && rightType == Type.STRING) {
+                    resultType = Type.STRING;
+                } else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+
+            case MINUS -> {
+                if (leftType == Type.INT && rightType == Type.INT) {
+                    resultType = Type.INT;
+                } else if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
+                    resultType = Type.PIXEL;
+                } else if (leftType == Type.IMAGE && rightType == Type.IMAGE) {
+                    resultType = Type.IMAGE;
+                } else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+
+            case TIMES, DIV, MOD -> {
+                if (leftType == Type.INT && rightType == Type.INT) {
+                    return Type.INT;
+                } else if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
+                    resultType = Type.PIXEL;
+                } else if (leftType == Type.IMAGE && rightType == Type.IMAGE) {
+                    resultType = Type.IMAGE;
+                } else if (leftType == Type.PIXEL && rightType == Type.INT) {
+                    resultType = Type.PIXEL;
+                } else if (leftType == Type.IMAGE && rightType == Type.INT) {
+                    resultType = Type.IMAGE;
+                } else {
+                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                }
+            }
+            default -> throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+
+        }
+
+        binaryExpression.setType(resultType);
+        return resultType;
+
+    }
 
 }
