@@ -79,8 +79,8 @@ public class TypeCheck implements ASTVisitor {
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
         String name = identExpr.getName();
         Declaration dec = symbolTable.lookup(name);
-        symbolTable.check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
-        symbolTable.check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
+        check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
+        check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
         //identExpr.setDec(dec); save declaration it will be useful later
         Type type = dec.getType();
         identExpr.setType(type);
@@ -113,6 +113,28 @@ public class TypeCheck implements ASTVisitor {
     //Name def
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
+
+        boolean boolDimension = (boolean) visitDimension(nameDef.getDimension(), arg);
+        Type typeResult = (Type) nameDef.getType();
+        Ident ident = nameDef.getIdent();
+
+        //if Dimension is not an empty string -> Type should be == to Type.IMAGE
+        if(boolDimension){
+
+            typeResult = Type.IMAGE;
+
+        }
+
+        if(typeResult == Type.VOID){
+
+            throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
+        }
+
+        //insert Symbol Table -> need to insert symbolTable
+        if(symbolTable.lookup(ident.getName()) == null){
+
+
+        }
 
         return null;
     }
