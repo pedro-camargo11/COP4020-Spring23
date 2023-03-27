@@ -115,7 +115,7 @@ public class TypeCheck implements ASTVisitor {
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
 
         boolean boolDimension = (boolean) visitDimension(nameDef.getDimension(), arg);
-        Type typeResult = (Type) nameDef.getType();
+        Type typeResult = nameDef.getType();
         Ident ident = nameDef.getIdent();
 
         //if Dimension is not an empty string -> Type should be == to Type.IMAGE
@@ -143,8 +143,24 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
 
-        pixelFuncExpr.setType(Type.INT);
-        return Type.INT;
+
+        PixelSelector selector = pixelFuncExpr.getSelector();
+        boolean selectorCheck = (boolean) visitPixelSelector(selector, arg);
+
+        //if its true then its properly typed
+        if(selectorCheck){
+
+            pixelFuncExpr.setType(Type.INT);
+            return Type.INT;
+
+        }
+        //else throw an exception
+        else{
+
+            throw new TypeCheckException("Type mismatch in PixelFuncExpr" + pixelFuncExpr.getFirstToken().getSourceLocation().column());
+        }
+
+
     }
 
     //Conditional Expression
@@ -230,6 +246,9 @@ public class TypeCheck implements ASTVisitor {
 
             return true;
         }
+        else if (widthType == null || heightType == null){
+            return false;
+        }
         else{
             throw new TypeCheckException("Type mismatch in Dimension" + dimension.getFirstToken().getSourceLocation().column());
         }
@@ -248,7 +267,7 @@ public class TypeCheck implements ASTVisitor {
 
             return true;
         }
-        else if (xType == null && yType == null){
+        else if (xType == null || yType == null){
             return false;
         }
         else{
