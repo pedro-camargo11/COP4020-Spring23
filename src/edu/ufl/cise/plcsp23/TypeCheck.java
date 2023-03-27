@@ -2,6 +2,7 @@ package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.*;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.List;
 
 public class TypeCheck implements ASTVisitor {
 
@@ -51,14 +52,19 @@ public class TypeCheck implements ASTVisitor {
     //helper method used to perform checks in visitor methods:
     //i.e. check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
     //i.e. check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
-    public boolean check (boolean checkBool, IdentExpr identExpr, String message) {
-        //not entirely sure if i need to do anything checks with the identExpr in this yet.
-        if (!checkBool){
-            System.out.println(message);
-            return false;
+    public void check (boolean checkBool, AST node, String message) throws TypeCheckException{
+        if (!checkBool) {
+            throw new TypeCheckException(message + node.getFirstToken().getSourceLocation().toString());
         }
-        return true;
+
     }
+
+    public boolean assignmentCompatible (Type targetType, Type rhs)
+    {
+        return (targetType == rhs);
+    }
+
+
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         return null;
@@ -77,14 +83,14 @@ public class TypeCheck implements ASTVisitor {
                 if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
                     resultType = Type.PIXEL;
                 } else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
             case OR, AND , LT, GT, LE, GE-> {
                 if (leftType == Type.INT && rightType == Type.INT) {
                     resultType = Type.INT;
                 } else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
 
@@ -98,7 +104,7 @@ public class TypeCheck implements ASTVisitor {
                 } else if (leftType == Type.STRING && rightType == Type.STRING) {
                     resultType = Type.INT;
                 } else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
 
@@ -110,7 +116,7 @@ public class TypeCheck implements ASTVisitor {
                     resultType = Type.PIXEL;
                 }
                 else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
 
@@ -124,7 +130,7 @@ public class TypeCheck implements ASTVisitor {
                 } else if (leftType == Type.STRING && rightType == Type.STRING) {
                     resultType = Type.STRING;
                 } else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
 
@@ -136,7 +142,7 @@ public class TypeCheck implements ASTVisitor {
                 } else if (leftType == Type.IMAGE && rightType == Type.IMAGE) {
                     resultType = Type.IMAGE;
                 } else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
 
@@ -152,10 +158,10 @@ public class TypeCheck implements ASTVisitor {
                 } else if (leftType == Type.IMAGE && rightType == Type.INT) {
                     resultType = Type.IMAGE;
                 } else {
-                    throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+                    check(false, binaryExpression, "Type mismatch in BinaryExpression");
                 }
             }
-            default -> throw new TypeCheckException("Type mismatch in BinaryExpression" + binaryExpression.getFirstToken().getSourceLocation().column());
+            default -> throw new TypeCheckException("Type mismatch in BinaryExpression");
 
         }
 
@@ -167,7 +173,19 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLCException {
-        return null;
+        //DecList is properly typed
+        List<Declaration> decList = block.getDecList();
+        for (Declaration dec : decList) {
+            dec.visit(this, arg);
+        }
+
+        //StatementList is properly typed
+        List<Statement> statementList = block.getStatementList();
+        for (Statement statement : statementList) {
+            statement.visit(this, arg);
+        }
+
+        return block;
     }
 
     //Conditional Expression
@@ -358,9 +376,23 @@ public class TypeCheck implements ASTVisitor {
         return Type.INT;
     }
 
+    //Save returnType for each visit?
     @Override
     public Object visitProgram (Program program, Object arg) throws PLCException {
-        return null;
+        //enter scope?
+
+        //All NameDefs are properly typed
+        List<NameDef> parameters = program.getParamList();
+        for(NameDef nameDef : parameters){
+            nameDef.visit(this, arg);
+        }
+
+        //Block is properly typed
+        Block block = program.getBlock();
+        visitBlock(block, arg);
+
+        //leave scope?
+        return program;//remove later
     }
 
     @Override
