@@ -39,10 +39,8 @@ public class CompilerComponentFactory {
 
 	public static ASTVisitor makeTypeChecker() {
 		//Code to instantiate and return an ASTVisitor for type checking
-		// return null for now. Can't instantiate an ASTVisitor
-		return null;
+		return new TypeCheck();
 	}
-
 
 
 }
