@@ -282,14 +282,12 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
         String name = identExpr.getName();
-        Declaration dec = symbolTable.lookup(name);
-        check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
-        check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
-        //identExpr.setDec(dec); save declaration it will be useful later
-        Type type = dec.getType();
-        identExpr.setType(type);
-        return type;
-
+        NameDef def = symbolTable.lookup(name);
+        if (def != null) {
+             identExpr.setType(def.getType());
+             return def.getType();
+        }
+        throw new TypeCheckException("Type mismatch in IdentExpr" + identExpr.getFirstToken().getSourceLocation().column());
     }
 
     @Override
@@ -313,17 +311,17 @@ public class TypeCheck implements ASTVisitor {
         }
 
         if(typeResult == Type.VOID){
-
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
         }
 
         //insert Symbol Table -> need to insert symbolTable
         if(symbolTable.lookup(ident.getName()) == null){
-
-
+            throw new TypeCheckException("Ident has not been previously defined in this scope");
         }
+        symbolTable.insert(ident.getName(), nameDef);
 
-        return null;
+        //?
+        return nameDef.getType();
     }
 
     @Override
@@ -467,6 +465,31 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitUnaryExprPostFix(UnaryExprPostfix unaryExprPostfix, Object arg) throws PLCException {
+        PixelSelector selector = unaryExprPostfix.getPixel();
+        boolean checkSelector = (boolean) visitPixelSelector(selector, arg);
+
+        Expr primaryExpr = unaryExprPostfix.getPrimary();
+        Type primaryType = primaryExpr.getType();
+        ColorChannel channel = unaryExprPostfix.getColor();
+
+        if (checkSelector){
+            //check if the primaryExpr is properly typed
+           if (channel == null && primaryType== Type.IMAGE){
+               unaryExprPostfix.setType(Type.IMAGE);
+           }
+           if (channel != null && primaryType == Type.IMAGE){
+               unaryExprPostfix.setType(Type.INT);
+           }
+        }
+        else{ //pixel selector not present
+            if (channel != null && primaryType == Type.IMAGE){
+                unaryExprPostfix.setType(Type.INT);
+            }
+            if (channel == null && primaryType == Type.IMAGE){
+                unaryExprPostfix.setType(Type.IMAGE);
+            }
+        }
+        //don't know what to retunr
         return null;
     }
 
