@@ -14,38 +14,47 @@ public class TypeCheck implements ASTVisitor {
 
     //Create a symbol table to store the scope and declaration.
     public static class SymbolTable {
+        int currScope;
+        int nextScope;
 
-        //create a hashmap to store the scope and declaration.
-        Stack<HashMap<String,Declaration>> symbolTable = new Stack<HashMap<String,Declaration>>();
+        Stack<Integer> scopeStack;
+        HashMap<String,NameDef> symbolTable;
+
+        public SymbolTable(){
+            currScope = 0;
+            nextScope = 1;
+
+            scopeStack = new Stack<Integer>();
+            symbolTable = new HashMap<String,NameDef>();
+
+            scopeStack.push(currScope);
+        }
+
+        public void enterScope(){
+            currScope = nextScope;
+            nextScope++;
+            scopeStack.push(currScope);
+        }
+
+        public void leaveScope(){
+            scopeStack.pop();
+            currScope = scopeStack.peek();
+        }
 
         //insert the declaration into the symbol table.
-        public boolean insert(String name, Declaration declaration){
-
-            //if the stack is empty then any insertion will be successful.
-            if(symbolTable.isEmpty()){
-                HashMap<String,Declaration> map = new HashMap<String,Declaration>();
-                map.put(name,declaration);
-                symbolTable.push(map);
-                return true;
+        public boolean insert(String name, NameDef nameDef){
+            if (symbolTable.containsKey(name)) {
+                return false;
             }
-            //if the stack is not empty then check if the name is already present in the symbol table.
-            else{
-                HashMap<String,Declaration> map = symbolTable.peek();
-                if(map.containsKey(name)){
-                    return false;
-                }
-                else{
-                    map.put(name,declaration);
-                    symbolTable.push(map);
-                    return true;
-                }
-            }
+            symbolTable.put(name, nameDef);
+            return true;
         }
 
 
-        public Declaration lookup(String  name) {
-            return symbolTable.peek().get(name);
+        public NameDef lookup(String  name) {
+            return symbolTable.get(name);
         }
+
 
     }
 
@@ -379,7 +388,8 @@ public class TypeCheck implements ASTVisitor {
     //Save returnType for each visit?
     @Override
     public Object visitProgram (Program program, Object arg) throws PLCException {
-        //enter scope?
+        //enter scope
+        symbolTable.enterScope();
 
         //All NameDefs are properly typed
         List<NameDef> parameters = program.getParamList();
@@ -391,7 +401,8 @@ public class TypeCheck implements ASTVisitor {
         Block block = program.getBlock();
         visitBlock(block, arg);
 
-        //leave scope?
+        //leave scope
+        symbolTable.leaveScope();
         return program;//remove later
     }
 
