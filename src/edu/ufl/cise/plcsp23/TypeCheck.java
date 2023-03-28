@@ -240,11 +240,14 @@ public class TypeCheck implements ASTVisitor {
         //make sure nameDef is properly typed
         NameDef nameDef = declaration.getNameDef();
         Type nameDefType = nameDef.getType();
-        nameDef.visit(this, arg);
         //Make sure nameDef is assigned
         Expr initializer = declaration.getInitializer();
-        if (initializer != null) {
+        if (initializer == null){
+            nameDef.visit(this, arg);
+        }
+        else {
             Type initType = (Type) initializer.visit(this, arg);
+            nameDef.visit(this, arg);
             check(assignmentCompatible(nameDefType, initType), declaration, "Type mismatch in Declaration");
         }
         return nameDefType;
