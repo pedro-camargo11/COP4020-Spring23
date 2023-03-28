@@ -7,6 +7,10 @@ import java.util.List;
 public class TypeCheck implements ASTVisitor {
 
     SymbolTable symbolTable;
+
+    //programType for type checking return
+    Type programType;
+
     public TypeCheck(){
         symbolTable = new SymbolTable();
     }
@@ -59,8 +63,6 @@ public class TypeCheck implements ASTVisitor {
     }
 
     //helper method used to perform checks in visitor methods:
-    //i.e. check(dec != null, identExpr, "Undeclared identifier " + identExpr.getName());
-    //i.e. check(dec.isAssigned(), identExpr, "Unassigned identifier " + identExpr.getName());
     public void check (boolean checkBool, AST node, String message) throws TypeCheckException{
         if (!checkBool) {
             throw new TypeCheckException(message + node.getFirstToken().getSourceLocation().toString());
@@ -70,7 +72,14 @@ public class TypeCheck implements ASTVisitor {
 
     public boolean assignmentCompatible (Type targetType, Type rhs)
     {
-        return (targetType == rhs);
+        return (targetType == rhs
+                || targetType == Type.IMAGE && rhs == Type.PIXEL
+                || targetType == Type.IMAGE && rhs == Type.STRING
+                || targetType == Type.PIXEL && rhs == Type.INT
+                || targetType == Type.INT && rhs == Type.PIXEL
+                || targetType == Type.STRING && rhs == Type.INT
+                || targetType == Type.STRING && rhs == Type.PIXEL
+                || targetType == Type.STRING && rhs == Type.IMAGE);
     }
 
 
@@ -228,13 +237,28 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
-        return null;
+        //make sure nameDef is properly typed
+        NameDef nameDef = declaration.getNameDef();
+        Type nameDefType = nameDef.getType();
+        nameDef.visit(this, arg);
+        //Make sure nameDef is assigned
+        Expr initializer = declaration.getInitializer();
+        if (initializer != null) {
+            Type initType = (Type) initializer.visit(this, arg);
+            check(assignmentCompatible(nameDefType, initType), declaration, "Type mismatch in Declaration");
+        }
+        return nameDefType;
+        // haven't considered the last constraint (NameDef.Type == IMAGE)
     }
 
     //Dimension
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
 
+        //System.out.println(dimension.getWidth() + " " + dimension.getHeight());
+        if (dimension == null) {
+            return false;
+        }
         Type widthType = (Type) dimension.getWidth().visit(this, arg);
         Type heightType = (Type) dimension.getHeight().visit(this, arg);
 
@@ -243,9 +267,6 @@ public class TypeCheck implements ASTVisitor {
         if(widthType == Type.INT && heightType == Type.INT){
 
             return true;
-        }
-        else if (widthType == null || heightType == null){
-            return false;
         }
         else{
             throw new TypeCheckException("Type mismatch in Dimension" + dimension.getFirstToken().getSourceLocation().column());
@@ -316,9 +337,11 @@ public class TypeCheck implements ASTVisitor {
 
         //insert Symbol Table -> need to insert symbolTable
         if(symbolTable.lookup(ident.getName()) == null){
-            throw new TypeCheckException("Ident has not been previously defined in this scope");
+            symbolTable.insert(ident.getName(), nameDef);
         }
-        symbolTable.insert(ident.getName(), nameDef);
+        else {
+            throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
+        }
 
         //?
         return nameDef.getType();
@@ -389,6 +412,10 @@ public class TypeCheck implements ASTVisitor {
         //enter scope
         symbolTable.enterScope();
 
+        //get program return type
+        Type returnType = program.getType();
+        programType = returnType;
+
         //All NameDefs are properly typed
         List<NameDef> parameters = program.getParamList();
         for(NameDef nameDef : parameters){
@@ -413,7 +440,18 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitReturnStatement (ReturnStatement returnStatement, Object arg) throws PLCException {
-        return null;
+        //expression is properly typed
+        Expr expr = returnStatement.getE();
+        Type exprType = (Type) expr.visit(this, arg);
+
+        //Expr.type is assignmentCompatible with program.Type
+        if (assignmentCompatible(exprType, programType)){
+            return exprType;
+        }
+        else{
+            throw new TypeCheckException("Type mismatch in ReturnStatement" + returnStatement.getFirstToken().getSourceLocation().column());
+        }
+
     }
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
