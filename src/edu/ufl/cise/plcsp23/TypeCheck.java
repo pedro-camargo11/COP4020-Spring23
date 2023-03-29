@@ -91,7 +91,6 @@ public class TypeCheck implements ASTVisitor {
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
 
         Type lvalueType = (Type) statementAssign.getLv().visit(this, arg);
-        System.out.println(lvalueType);
         Type exprType = (Type) statementAssign.getE().visit(this, arg);
 
         check(assignmentCompatible(lvalueType, exprType), statementAssign, "Type mismatch in AssignmentStatement");
@@ -269,7 +268,6 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
 
-        //System.out.println(dimension.getWidth() + " " + dimension.getHeight());
         if (dimension == null) {
             return false;
         }
