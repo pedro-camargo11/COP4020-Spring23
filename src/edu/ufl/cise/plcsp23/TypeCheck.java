@@ -1,19 +1,23 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.*;
-import java.util.HashMap;
-import java.util.Stack;
-import java.util.List;
+
+import java.util.*;
+
 
 public class TypeCheck implements ASTVisitor {
-
-    SymbolTable symbolTable;
 
     //programType for type checking return
     Type programType;
 
+
     public TypeCheck(){
         symbolTable = new SymbolTable();
     }
+
+    SymbolTable symbolTable;
+
+
+
 
 
     //Create a symbol table to store the scope and declaration.
@@ -55,7 +59,7 @@ public class TypeCheck implements ASTVisitor {
         }
 
 
-        public NameDef lookup(String  name) {
+        public NameDef lookup(String name) {
             return symbolTable.get(name);
         }
 
@@ -85,7 +89,14 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
-        return null;
+
+        Type lvalueType = (Type) statementAssign.getLv().visit(this, arg);
+        System.out.println(lvalueType);
+        Type exprType = (Type) statementAssign.getE().visit(this, arg);
+
+        check(assignmentCompatible(lvalueType, exprType), statementAssign, "Type mismatch in AssignmentStatement");
+
+        return statementAssign;
     }
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpression, Object arg) throws PLCException {
@@ -316,7 +327,43 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitLValue (LValue lValue, Object arg) throws PLCException {
-        return null;
+
+        String name = lValue.getIdent().getName();
+        PixelSelector pixel = lValue.getPixelSelector();
+        ColorChannel color = lValue.getColor();
+        Type identType = symbolTable.lookup(name).getType();
+        Type resultType = null;
+
+        if(identType == null){
+            throw new TypeCheckException("Type mismatch in LValue" + lValue.getFirstToken().getSourceLocation().column());
+        }
+        else{
+            switch(identType){
+                case IMAGE -> {
+                    if(pixel == null && color == null) resultType = Type.IMAGE;
+                    else if(pixel != null && color == null) resultType = Type.PIXEL;
+                    else if(pixel == null && color != null) resultType = Type.IMAGE;
+                    else resultType = Type.INT;
+
+                }
+                case PIXEL -> {
+                    if(color == null && pixel == null) resultType = Type.PIXEL;
+                    else if(color != null && pixel == null) resultType = Type.INT;
+                    else throw new TypeCheckException("Type mismatch in LValue" + lValue.getFirstToken().getSourceLocation().column());
+
+                }
+                case STRING -> {
+                    if(pixel == null && color == null) resultType = Type.STRING;
+                    else throw new TypeCheckException("Type mismatch in LValue" + lValue.getFirstToken().getSourceLocation().column());
+                }
+                case INT -> {
+                    if(pixel == null && color == null) resultType = Type.INT;
+                    else throw new TypeCheckException("Type mismatch in LValue" + lValue.getFirstToken().getSourceLocation().column());
+                }
+                default -> throw new TypeCheckException("Type mismatch in LValue" + lValue.getFirstToken().getSourceLocation().column());
+            }
+        }
+        return resultType;
     }
 
     //Name def
@@ -330,9 +377,12 @@ public class TypeCheck implements ASTVisitor {
         //if Dimension is not an empty string -> Type should be == to Type.IMAGE
         if(boolDimension){
 
-            typeResult = Type.IMAGE;
+           if(typeResult != Type.IMAGE){
+               throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
+           }
 
         }
+
 
         if(typeResult == Type.VOID){
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
@@ -385,6 +435,12 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
 
+        //if pixelSelector is null then return false
+        if(pixelSelector == null){
+            return false;
+        }
+
+        //properly type check the x and y
         Type xType = (Type) pixelSelector.getX().visit(this, arg);
         Type yType = (Type) pixelSelector.getY().visit(this, arg);
 
@@ -448,7 +504,7 @@ public class TypeCheck implements ASTVisitor {
         Type exprType = (Type) expr.visit(this, arg);
 
         //Expr.type is assignmentCompatible with program.Type
-        if (assignmentCompatible(exprType, programType)){
+        if (exprType == programType){
             return exprType;
         }
         else{
@@ -477,8 +533,8 @@ public class TypeCheck implements ASTVisitor {
                 if(rightType == Type.INT){
                     resultType = Type.INT;
                 }
-                else if(rightType == Type.STRING){
-                    resultType = Type.STRING;
+                else if(rightType == Type.PIXEL){
+                    resultType = Type.PIXEL;
                 }
                 else{
                     throw new TypeCheckException("Type mismatch in UnaryExpr" + unaryExpr.getFirstToken().getSourceLocation().column());
@@ -509,29 +565,37 @@ public class TypeCheck implements ASTVisitor {
         PixelSelector selector = unaryExprPostfix.getPixel();
         boolean checkSelector = (boolean) visitPixelSelector(selector, arg);
 
-        Expr primaryExpr = unaryExprPostfix.getPrimary();
-        Type primaryType = primaryExpr.getType();
+        Type primaryExpr = (Type) unaryExprPostfix.getPrimary().visit(this, arg);
         ColorChannel channel = unaryExprPostfix.getColor();
+        Type resultType = null;
 
         if (checkSelector){
-            //check if the primaryExpr is properly typed
-           if (channel == null && primaryType== Type.IMAGE){
-               unaryExprPostfix.setType(Type.IMAGE);
+
+           if (channel == null && primaryExpr== Type.IMAGE){
+               unaryExprPostfix.setType(Type.PIXEL);
+               resultType = Type.PIXEL;
            }
-           if (channel != null && primaryType == Type.IMAGE){
+           else if (channel != null && primaryExpr == Type.IMAGE){
                unaryExprPostfix.setType(Type.INT);
+               resultType = Type.INT;
            }
+           else throw new TypeCheckException("Type mismatch in UnaryExprPostfix" + unaryExprPostfix.getFirstToken().getSourceLocation().column());
         }
         else{ //pixel selector not present
-            if (channel != null && primaryType == Type.IMAGE){
-                unaryExprPostfix.setType(Type.INT);
-            }
-            if (channel == null && primaryType == Type.IMAGE){
+            if (channel != null && primaryExpr == Type.IMAGE){
                 unaryExprPostfix.setType(Type.IMAGE);
+                resultType = Type.IMAGE;
             }
+            else if (channel != null && primaryExpr == Type.PIXEL){
+                unaryExprPostfix.setType(Type.INT);
+                resultType = Type.INT;
+            }
+            else throw new TypeCheckException("Type mismatch in UnaryExprPostfix" + unaryExprPostfix.getFirstToken().getSourceLocation().column());
+
         }
-        //don't know what to retunr
-        return null;
+
+        //Return type of UnaryExprPostfix
+        return resultType;
     }
 
     @Override
