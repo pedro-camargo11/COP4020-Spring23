@@ -61,10 +61,20 @@ public class TypeCheck implements ASTVisitor {
         }
 
         public void leaveScope(){
+
             //iterate through the symbol table and remove all the declarations in the current scope.
+            int index = currScope - 1;
+            Set<String> names = symbolTable.keySet();
 
+            //remove all the declarations in the current scope.
+            for(String name: names){
 
-            currScope --;
+                if(symbolTable.get(name).get(index).getSecond() == currScope){
+                    symbolTable.get(name).remove(index);
+                }
+            }
+
+            currScope--;
         }
 
         //insert the declaration into the symbol table.
