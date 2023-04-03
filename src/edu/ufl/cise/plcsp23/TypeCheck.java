@@ -22,45 +22,81 @@ public class TypeCheck implements ASTVisitor {
 
     //Create a symbol table to store the scope and declaration.
     public static class SymbolTable {
+
+        public class Pair <T, U> {
+            private T identName;
+            private U identScope;
+
+            public Pair(T first, U second) {
+                this.identName = first;
+                this.identScope = second;
+            }
+
+            public T getFirst() {
+                return identName;
+            }
+
+            public U getSecond() {
+                return identScope;
+            }
+        }
+
         int currScope;
         int nextScope;
 
-        Stack<Integer> scopeStack;
-        HashMap<String,NameDef> symbolTable;
+        HashMap<String, List<Pair<NameDef, Integer>>> symbolTable;
+
+        //HashMap<String,NameDef> symbolTable;
 
         public SymbolTable(){
             currScope = 0;
             nextScope = 1;
 
-            scopeStack = new Stack<Integer>();
-            symbolTable = new HashMap<String,NameDef>();
+            symbolTable = new HashMap< String, List<Pair<NameDef, Integer>>>();
 
-            scopeStack.push(currScope);
         }
 
         public void enterScope(){
-            currScope = nextScope;
-            nextScope++;
-            scopeStack.push(currScope);
+            currScope++;
         }
 
         public void leaveScope(){
-            scopeStack.pop();
-            currScope = scopeStack.peek();
+            //iterate through the symbol table and remove all the declarations in the current scope.
+
+
+            currScope --;
         }
 
         //insert the declaration into the symbol table.
         public boolean insert(String name, NameDef nameDef){
             if (symbolTable.containsKey(name)) {
+                //NEED TO DO SOME CHECK FOR SCOPE I THINK
                 return false;
+
             }
-            symbolTable.put(name, nameDef);
-            return true;
+            else {
+                //if the name does not exist in the current scope or lower, add it to the symbol table.
+                Pair<NameDef, Integer> pair = new Pair<NameDef, Integer>(nameDef, currScope);
+                List<Pair<NameDef, Integer>> nameList = new ArrayList<Pair<NameDef, Integer>>();
+                nameList.add(pair);
+                symbolTable.put(name, nameList);
+
+                return true;
+            }
         }
 
 
         public NameDef lookup(String name) {
-            return symbolTable.get(name);
+            //if the name exists in the symbol table in the currScope, return the NameDef.
+            if (symbolTable.containsKey(name)) {
+                List<Pair<NameDef, Integer>> nameList = symbolTable.get(name);
+                for (Pair<NameDef, Integer> pair : nameList) {
+                    if (pair.getSecond() == currScope) {
+                        return pair.getFirst();
+                    }
+                }
+            }
+            return null;
         }
 
 
@@ -598,6 +634,11 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitWhileStatement (WhileStatement whileStatement, Object arg) throws PLCException {
+        //enter scop
+
+        //visit block
+
+        //leave scope
         return null;
     }
 
