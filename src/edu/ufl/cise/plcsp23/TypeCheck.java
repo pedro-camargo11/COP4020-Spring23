@@ -69,7 +69,7 @@ public class TypeCheck implements ASTVisitor {
             //remove all the declarations in the current scope.
             for(String name: names){
 
-                if(symbolTable.get(name).get(index).getSecond() == currScope){
+                if(symbolTable.get(name).get(index).getSecond() == currScope){ //breaks here because the array list
                     symbolTable.get(name).remove(index);
                 }
             }
@@ -79,18 +79,21 @@ public class TypeCheck implements ASTVisitor {
 
         //insert the declaration into the symbol table.
         public boolean insert(String name, NameDef nameDef){
-            if (symbolTable.containsKey(name)) {
-                //NEED TO DO SOME CHECK FOR SCOPE I THINK
-                return false;
-
+            List<Pair<NameDef, Integer>> list = symbolTable.get(name);
+            if (list == null) {
+                list = new ArrayList<Pair<NameDef, Integer>>();
+                list.add(new Pair<NameDef, Integer>(nameDef, currScope));
+                symbolTable.put(name, list);
+                return true;
             }
             else {
-                //if the name does not exist in the current scope or lower, add it to the symbol table.
-                Pair<NameDef, Integer> pair = new Pair<NameDef, Integer>(nameDef, currScope);
-                List<Pair<NameDef, Integer>> nameList = new ArrayList<Pair<NameDef, Integer>>();
-                nameList.add(pair);
-                symbolTable.put(name, nameList);
-
+                for (Pair<NameDef, Integer> pair : list) {
+                    if (pair.getSecond() == currScope) {
+                        return false;
+                    }
+                }
+                list.add(new Pair<NameDef, Integer>(nameDef, currScope));
+                symbolTable.put(name, list);
                 return true;
             }
         }
@@ -433,7 +436,7 @@ public class TypeCheck implements ASTVisitor {
         }
 
         //insert Symbol Table -> need to insert symbolTable
-        if(symbolTable.lookup(ident.getName()) == null){
+        if(symbolTable.lookup(ident.getName()) == null){ // MODIFY TO CHECK FOR SCOPE
             symbolTable.insert(ident.getName(), nameDef);
         }
         else {
@@ -644,12 +647,26 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitWhileStatement (WhileStatement whileStatement, Object arg) throws PLCException {
-        //enter scop
+
+
+        //expression is properly typed
+        Expr expr = whileStatement.getGuard();
+        Type exprType = (Type) expr.visit(this, arg);
+        if (exprType != Type.INT){
+            throw new TypeCheckException("Type mismatch in WhileStatement" + whileStatement.getFirstToken().getSourceLocation().column());
+        }
+
+        //enter scope
+        symbolTable.enterScope();
 
         //visit block
+        Block block = whileStatement.getBlock();
+       Type visitB = (Type) visitBlock(block, arg);
 
         //leave scope
-        return null;
+        symbolTable.leaveScope();
+
+        return visitB;
     }
 
     @Override
