@@ -17,9 +17,6 @@ public class TypeCheck implements ASTVisitor {
     SymbolTable symbolTable;
 
 
-
-
-
     //Create a symbol table to store the scope and declaration.
     public static class SymbolTable {
 
@@ -103,8 +100,8 @@ public class TypeCheck implements ASTVisitor {
             //if the name exists in the symbol table in the currScope, return the NameDef.
             if (symbolTable.containsKey(name)) {
                 List<Pair<NameDef, Integer>> nameList = symbolTable.get(name);
-                for (Pair<NameDef, Integer> pair : nameList) {
-                    if (pair.getSecond() == currScope) {
+                for (Pair<NameDef, Integer> pair : nameList) { //err when looking up scope
+                    if (pair.getSecond() <= currScope) {
                         return pair.getFirst();
                     }
                 }
@@ -294,23 +291,26 @@ public class TypeCheck implements ASTVisitor {
 
     }
 
-    @Override
+    @Override // rework this function -> haven't considered the last constraint (NameDef.Type == IMAGE) : Santi work
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
+
         //make sure nameDef is properly typed
         NameDef nameDef = declaration.getNameDef();
         Type nameDefType = nameDef.getType();
         //Make sure nameDef is assigned
         Expr initializer = declaration.getInitializer();
+
         if (initializer == null){
             nameDef.visit(this, arg);
         }
         else {
             Type initType = (Type) initializer.visit(this, arg);
+            initializer.setType(initType);
             nameDef.visit(this, arg);
             check(assignmentCompatible(nameDefType, initType), declaration, "Type mismatch in Declaration");
         }
         return nameDefType;
-        // haven't considered the last constraint (NameDef.Type == IMAGE)
+
     }
 
     //Dimension
@@ -427,9 +427,9 @@ public class TypeCheck implements ASTVisitor {
            if(typeResult != Type.IMAGE){
                throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
            }
+           typeResult = (Type) visitDimension(nameDef.getDimension(), arg);
 
         }
-
 
         if(typeResult == Type.VOID){
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
@@ -443,8 +443,8 @@ public class TypeCheck implements ASTVisitor {
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
         }
 
-        //?
-        return nameDef.getType();
+
+        return typeResult;
     }
 
     @Override
@@ -652,6 +652,7 @@ public class TypeCheck implements ASTVisitor {
         //expression is properly typed
         Expr expr = whileStatement.getGuard();
         Type exprType = (Type) expr.visit(this, arg);
+        expr.setType(exprType);
         if (exprType != Type.INT){
             throw new TypeCheckException("Type mismatch in WhileStatement" + whileStatement.getFirstToken().getSourceLocation().column());
         }
@@ -661,10 +662,10 @@ public class TypeCheck implements ASTVisitor {
 
         //visit block
         Block block = whileStatement.getBlock();
-       Type visitB = (Type) visitBlock(block, arg);
+        Type visitB = (Type) visitBlock(block, arg); // this throws err in case t16
 
         //leave scope
-        symbolTable.leaveScope();
+        symbolTable.leaveScope();//comment out visitB we get an err with index out of bounds
 
         return visitB;
     }
