@@ -91,8 +91,9 @@ public class TypeCheck implements ASTVisitor {
             //if the name exists in the symbol table in the currScope, return the NameDef.
             if (symbolTable.containsKey(name)) {
                 List<Pair<NameDef, Integer>> nameList = symbolTable.get(name);
-                for (Pair<NameDef, Integer> pair : nameList) { //err when looking up scope
-                    if (scopeStack.contains(pair.getSecond()) ) {
+                for (Pair<NameDef, Integer> pair : nameList) {
+                    if (scopeStack.contains(pair.getSecond())){
+
                         return pair.getFirst();
                     }
                 }
@@ -288,8 +289,16 @@ public class TypeCheck implements ASTVisitor {
         //make sure nameDef is properly typed
         NameDef nameDef = declaration.getNameDef();
         Type nameDefType = nameDef.getType();
+
         //Make sure nameDef is assigned
         Expr initializer = declaration.getInitializer();
+
+        if(nameDefType == Type.IMAGE){
+
+            if(initializer == null && nameDef.getDimension() == null){
+                throw new TypeCheckException("Type mismatch in Declaration" + declaration.getFirstToken().getSourceLocation().column());
+            }
+        }
 
         if (initializer == null){
             nameDef.visit(this, arg);
@@ -413,12 +422,13 @@ public class TypeCheck implements ASTVisitor {
         //if Dimension is not an empty string -> Type should be == to Type.IMAGE
         if(getDimension != null){
 
-            Dimension dimension = (Dimension) visitDimension(nameDef.getDimension(), arg);
-            if(typeResult != Type.IMAGE && dimension != null){
+            //Dimension dimension = (Dimension) visitDimension(nameDef.getDimension(), arg);
+            if(typeResult != Type.IMAGE){
                throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
             }
 
         }
+
 
         if(typeResult == Type.VOID){
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
