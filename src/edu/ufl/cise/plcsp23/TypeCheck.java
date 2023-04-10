@@ -41,7 +41,8 @@ public class TypeCheck implements ASTVisitor {
         int currScope;
         int nextScope;
 
-        HashMap<String, List<Pair<NameDef, Integer>>> symbolTable;
+        HashMap<String, LinkedList<Pair<NameDef, Integer>>> symbolTable;
+        Stack <Integer> scopeStack;
 
         //HashMap<String,NameDef> symbolTable;
 
@@ -49,37 +50,27 @@ public class TypeCheck implements ASTVisitor {
             currScope = 0;
             nextScope = 1;
 
-            symbolTable = new HashMap< String, List<Pair<NameDef, Integer>>>();
-
+            symbolTable = new HashMap< String, LinkedList<Pair<NameDef, Integer>>>();
+            scopeStack = new Stack <Integer>();
         }
 
         public void enterScope(){
-            currScope++;
+            currScope=nextScope;
+            nextScope ++;
+            scopeStack.push(currScope);
+
         }
 
         public void leaveScope(){
-
-            //iterate through the symbol table and remove all the declarations in the current scope.
-            int index = currScope - 1;
-            Set<String> names = symbolTable.keySet();
-
-            //remove all the declarations in the current scope.
-            for(String name: names){
-
-                if(symbolTable.get(name).get(index).getSecond() == currScope){ //breaks here because the array list
-                    symbolTable.get(name).remove(index);
-                }
-            }
-
-            currScope--;
+            currScope = scopeStack.pop();
         }
 
         //insert the declaration into the symbol table.
-        public boolean insert(String name, NameDef nameDef){
-            List<Pair<NameDef, Integer>> list = symbolTable.get(name);
+        public boolean insert(String name, NameDef nameDef){ //prepend pair to the list
+            LinkedList<Pair<NameDef, Integer>> list = symbolTable.get(name);
             if (list == null) {
-                list = new ArrayList<Pair<NameDef, Integer>>();
-                list.add(new Pair<NameDef, Integer>(nameDef, currScope));
+                list = new LinkedList<Pair<NameDef, Integer>>();
+                list.addFirst(new Pair<NameDef, Integer>(nameDef, currScope));
                 symbolTable.put(name, list);
                 return true;
             }
@@ -89,7 +80,7 @@ public class TypeCheck implements ASTVisitor {
                         return false;
                     }
                 }
-                list.add(new Pair<NameDef, Integer>(nameDef, currScope));
+                list.addFirst(new Pair<NameDef, Integer>(nameDef, currScope));
                 symbolTable.put(name, list);
                 return true;
             }
@@ -101,7 +92,7 @@ public class TypeCheck implements ASTVisitor {
             if (symbolTable.containsKey(name)) {
                 List<Pair<NameDef, Integer>> nameList = symbolTable.get(name);
                 for (Pair<NameDef, Integer> pair : nameList) { //err when looking up scope
-                    if (pair.getSecond() <= currScope) {
+                    if (scopeStack.contains(pair.getSecond()) ) {
                         return pair.getFirst();
                     }
                 }
@@ -662,7 +653,7 @@ public class TypeCheck implements ASTVisitor {
 
         //visit block
         Block block = whileStatement.getBlock();
-        Type visitB = (Type) visitBlock(block, arg); // this throws err in case t16
+        Block visitB = (Block) visitBlock(block, arg); // this throws err in case t16
 
         //leave scope
         symbolTable.leaveScope();//comment out visitB we get an err with index out of bounds
