@@ -309,20 +309,18 @@ public class TypeCheck implements ASTVisitor {
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
 
         if (dimension == null) {
-            return false;
+            return null;
         }
         Type widthType = (Type) dimension.getWidth().visit(this, arg);
         Type heightType = (Type) dimension.getHeight().visit(this, arg);
 
 
         //return true if both are ints otherwise error out.
-        if(widthType == Type.INT && heightType == Type.INT){
+        if(widthType != Type.INT && heightType != Type.INT){
 
-            return true;
-        }
-        else{
             throw new TypeCheckException("Type mismatch in Dimension" + dimension.getFirstToken().getSourceLocation().column());
         }
+        return dimension;
 
     }
 
@@ -408,17 +406,17 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
 
-        boolean boolDimension = (boolean) visitDimension(nameDef.getDimension(), arg);
+        Dimension getDimension = nameDef.getDimension();
         Type typeResult = nameDef.getType();
         Ident ident = nameDef.getIdent();
 
         //if Dimension is not an empty string -> Type should be == to Type.IMAGE
-        if(boolDimension){
+        if(getDimension != null){
 
-           if(typeResult != Type.IMAGE){
+            Dimension dimension = (Dimension) visitDimension(nameDef.getDimension(), arg);
+            if(typeResult != Type.IMAGE && dimension != null){
                throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
-           }
-           typeResult = (Type) visitDimension(nameDef.getDimension(), arg);
+            }
 
         }
 
