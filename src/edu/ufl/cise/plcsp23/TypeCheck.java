@@ -316,7 +316,7 @@ public class TypeCheck implements ASTVisitor {
 
 
         //return true if both are ints otherwise error out.
-        if(widthType != Type.INT && heightType != Type.INT){
+        if(widthType != Type.INT || heightType != Type.INT){
 
             throw new TypeCheckException("Type mismatch in Dimension" + dimension.getFirstToken().getSourceLocation().column());
         }
