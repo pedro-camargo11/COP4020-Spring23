@@ -415,14 +415,13 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
 
-        Dimension getDimension = nameDef.getDimension();
+        Dimension dimension = (Dimension) visitDimension(nameDef.getDimension(), arg);
         Type typeResult = nameDef.getType();
         Ident ident = nameDef.getIdent();
 
         //if Dimension is not an empty string -> Type should be == to Type.IMAGE
-        if(getDimension != null){
+        if(dimension != null){
 
-            //Dimension dimension = (Dimension) visitDimension(nameDef.getDimension(), arg);
             if(typeResult != Type.IMAGE){
                throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
             }
