@@ -388,7 +388,7 @@ public class Parser implements IParser{
 
             PixelSelector pixelSelector = selector();
 
-            if(!(isKind(IToken.Kind.DOT))){
+            if(isKind(IToken.Kind.COLON)){
                 ColorChannel channelSelector = channel();
                 return new UnaryExprPostfix(firstToken, primary, pixelSelector, channelSelector);
             }

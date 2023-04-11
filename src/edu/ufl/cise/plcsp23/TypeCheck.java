@@ -92,8 +92,9 @@ public class TypeCheck implements ASTVisitor {
             if (symbolTable.containsKey(name)) {
                 List<Pair<NameDef, Integer>> nameList = symbolTable.get(name);
                 for (Pair<NameDef, Integer> pair : nameList) {
-                    if (scopeStack.contains(pair.getSecond())){
 
+                    //if the scope is in the stack
+                    if (scopeStack.contains(pair.getSecond())){
                         return pair.getFirst();
                     }
                 }
@@ -145,7 +146,7 @@ public class TypeCheck implements ASTVisitor {
         IToken.Kind op = binaryExpression.getOp();
 
         switch(op){
-            case BANG, BITAND ->{
+            case BITOR, BITAND ->{
                 if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
                     resultType = Type.PIXEL;
                 } else {
@@ -178,7 +179,7 @@ public class TypeCheck implements ASTVisitor {
                 if (leftType == Type.INT && rightType == Type.INT) {
                     resultType = Type.INT;
                 }
-                if (leftType == Type.PIXEL && rightType == Type.INT) {
+                else if (leftType == Type.PIXEL && rightType == Type.INT) {
                     resultType = Type.PIXEL;
                 }
                 else {
@@ -428,12 +429,12 @@ public class TypeCheck implements ASTVisitor {
 
         }
 
-
+        //check if it is void
         if(typeResult == Type.VOID){
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
         }
 
-        //insert Symbol Table -> need to insert symbolTable
+        //check if it has been declared previously in the scope
         if(symbolTable.lookup(ident.getName()) == null){ // MODIFY TO CHECK FOR SCOPE
             symbolTable.insert(ident.getName(), nameDef);
         }
