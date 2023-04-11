@@ -215,7 +215,7 @@ public class TypeCheck implements ASTVisitor {
 
             case TIMES, DIV, MOD -> {
                 if (leftType == Type.INT && rightType == Type.INT) {
-                    return Type.INT;
+                    resultType = Type.INT;
                 } else if (leftType == Type.PIXEL && rightType == Type.PIXEL) {
                     resultType = Type.PIXEL;
                 } else if (leftType == Type.IMAGE && rightType == Type.IMAGE) {
@@ -263,6 +263,8 @@ public class TypeCheck implements ASTVisitor {
         Type trueType = (Type) conditionalExpr.getTrueCase().visit(this, arg);
         Type falseType = (Type) conditionalExpr.getFalseCase().visit(this, arg);
         Type resultType = null;
+
+        conditionalExpr.setType(trueType); //set type of the conditional
 
         if(gaurdType == Type.INT){
 
@@ -337,6 +339,7 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
 
+        expandedPixelExpr.setType(Type.PIXEL);
         Type redType = (Type) expandedPixelExpr.getRedExpr().visit(this, arg);
         Type greenType = (Type) expandedPixelExpr.getGrnExpr().visit(this, arg);
         Type blueType = (Type) expandedPixelExpr.getBluExpr().visit(this, arg);
@@ -377,6 +380,11 @@ public class TypeCheck implements ASTVisitor {
         String name = lValue.getIdent().getName();
         PixelSelector pixel = lValue.getPixelSelector();
         ColorChannel color = lValue.getColor();
+
+        if (pixel != null)
+        {
+            pixel.visit(this, arg);
+        }
         Type identType = symbolTable.lookup(name).getType();
         Type resultType = null;
 
@@ -552,7 +560,7 @@ public class TypeCheck implements ASTVisitor {
         Type exprType = (Type) expr.visit(this, arg);
 
         //Expr.type is assignmentCompatible with program.Type
-        if (exprType == programType){
+        if (exprType == programType){ //add assignment compatability logic
             return exprType;
         }
         else{
