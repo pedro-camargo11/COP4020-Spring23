@@ -433,12 +433,14 @@ public class TypeCheck implements ASTVisitor {
         if(typeResult == Type.VOID){
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
         }
+        
+        //if the name is already in the symbol table at the same scope
+        if(!(symbolTable.insert(ident.getName(), nameDef))){
+            throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
+        }
 
         //check if it has been declared previously in the scope
         if(symbolTable.lookup(ident.getName()) == null){ // MODIFY TO CHECK FOR SCOPE
-            symbolTable.insert(ident.getName(), nameDef);
-        }
-        else {
             throw new TypeCheckException("Type mismatch in NameDef" + nameDef.getFirstToken().getSourceLocation().column());
         }
 
