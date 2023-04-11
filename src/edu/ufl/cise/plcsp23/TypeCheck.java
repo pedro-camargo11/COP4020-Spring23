@@ -380,18 +380,21 @@ public class TypeCheck implements ASTVisitor {
         String name = lValue.getIdent().getName();
         PixelSelector pixel = lValue.getPixelSelector();
         ColorChannel color = lValue.getColor();
+        NameDef def = symbolTable.lookup(name);
+        Type resultType = null;
 
         if (pixel != null)
         {
             pixel.visit(this, arg);
         }
-        Type identType = symbolTable.lookup(name).getType();
-        Type resultType = null;
 
-        if(identType == null){
+
+        if(def == null){
             throw new TypeCheckException("Type mismatch in LValue" + lValue.getFirstToken().getSourceLocation().column());
         }
         else{
+
+            Type identType = def.getType();
             switch(identType){
                 case IMAGE -> {
                     if(pixel == null && color == null) resultType = Type.IMAGE;
