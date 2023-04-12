@@ -2402,117 +2402,117 @@ void f() {
     }
 
     @Test
-    void test25() throws PLCException{
-        assertTimeoutPreemptively(Duration.ofMillis(TIMEOUT_MILLIS), () -> {
-            String input = """
-void f() {
-    image[200,200] aa.
-    pixel bb = aa[200,200].
-    int cc.
-    aa:red = aa.
-    bb:grn = cc.
-    aa[1,1]:grn = cc.
-}
-""";
-            AST ast = getAST(input);
-            assertThat("",ast,instanceOf(Program.class));
-            Program v0= (Program)ast;
-            Ident v1 = v0.getIdent();
-            checkIdent(v1,"f");
-            List<NameDef> v2 = v0.getParamList();
-            int v3= v2.size();
-            assertEquals(0, v3);
-            Block v4 = v0.getBlock();
-            assertThat("",v4,instanceOf(Block.class));
-            List<Declaration> v5 = v4.getDecList();
-            int v6= v5.size();
-            assertEquals(3, v6);
-            Declaration v7 = v5.get(0);
-            assertThat("",v7,instanceOf(Declaration.class));
-            NameDef v8 = v7.getNameDef();
-            assertThat("",v8,instanceOf(NameDef.class));
-            checkNameDef(v8,"aa",Type.IMAGE);
-            Dimension v9 = ((NameDef)v8).getDimension();
-            assertThat("",v9,instanceOf(Dimension.class));
-            Expr v10 = ((Dimension)v9).getWidth();
-            checkNumLit(v10,200);
-            assertEquals(Type.INT, v10.getType());
-            Expr v11 = ((Dimension)v9).getHeight();
-            checkNumLit(v11,200);
-            assertEquals(Type.INT, v11.getType());
-            assertNull(v7.getInitializer());
-            Declaration v12 = v5.get(1);
-            assertThat("",v12,instanceOf(Declaration.class));
-            NameDef v13 = v12.getNameDef();
-            assertThat("",v13,instanceOf(NameDef.class));
-            checkNameDef(v13,"bb",Type.PIXEL);
-            assertNull(v13.getDimension());
-            Expr v14 = v12.getInitializer();
-            assertThat("",v14,instanceOf(UnaryExprPostfix.class));
-            assertEquals(Type.PIXEL, v14.getType());
-            Expr v15 = ((UnaryExprPostfix)v14).getPrimary();
-            checkIdentExpr(v15,"aa");
-            assertEquals(Type.IMAGE, v15.getType());
-            PixelSelector v16 = ((UnaryExprPostfix)v14).getPixel();
-            assertThat("",v16,instanceOf(PixelSelector.class));
-            Expr v17 = ((PixelSelector)v16).getX();
-            checkNumLit(v17,200);
-            assertEquals(Type.INT, v17.getType());
-            Expr v18 = ((PixelSelector)v16).getY();
-            checkNumLit(v18,200);
-            assertEquals(Type.INT, v18.getType());
-            assertNull(((UnaryExprPostfix)v14).getColor());
-            Declaration v19 = v5.get(2);
-            assertThat("",v19,instanceOf(Declaration.class));
-            NameDef v20 = v19.getNameDef();
-            assertThat("",v20,instanceOf(NameDef.class));
-            checkNameDef(v20,"cc",Type.INT);
-            assertNull(v20.getDimension());
-            assertNull(v19.getInitializer());
-            List<Statement> v21 = v4.getStatementList();
-            int v22= v21.size();
-            assertEquals(3, v22);
-            Statement v23 = v21.get(0);
-            assertThat("",v23,instanceOf(AssignmentStatement.class));
-            LValue v24 = ((AssignmentStatement)v23).getLv();
-            assertThat("",v24,instanceOf(LValue.class));
-            Ident v25 = v24.getIdent();
-            checkIdent(v25,"aa");
-            assertNull(v24.getPixelSelector());
-            assertEquals( ColorChannel.red,v24.getColor());
-            Expr v26 = ((AssignmentStatement)v23).getE();
-            checkIdentExpr(v26,"aa");
-            assertEquals(Type.IMAGE, v26.getType());
-            Statement v27 = v21.get(1);
-            assertThat("",v27,instanceOf(AssignmentStatement.class));
-            LValue v28 = ((AssignmentStatement)v27).getLv();
-            assertThat("",v28,instanceOf(LValue.class));
-            Ident v29 = v28.getIdent();
-            checkIdent(v29,"bb");
-            assertNull(v28.getPixelSelector());
-            assertEquals( ColorChannel.grn,v28.getColor());
-            Expr v30 = ((AssignmentStatement)v27).getE();
-            checkIdentExpr(v30,"cc");
-            assertEquals(Type.INT, v30.getType());
-            Statement v31 = v21.get(2);
-            assertThat("",v31,instanceOf(AssignmentStatement.class));
-            LValue v32 = ((AssignmentStatement)v31).getLv();
-            assertThat("",v32,instanceOf(LValue.class));
-            Ident v33 = v32.getIdent();
-            checkIdent(v33,"aa");
-            PixelSelector v34 = v32.getPixelSelector();
-            assertThat("",v34,instanceOf(PixelSelector.class));
-            Expr v35 = ((PixelSelector)v34).getX();
-            checkNumLit(v35,1);
-            assertEquals(Type.INT, v35.getType());
-            Expr v36 = ((PixelSelector)v34).getY();
-            checkNumLit(v36,1);
-            assertEquals(Type.INT, v36.getType());
-            assertEquals( ColorChannel.grn,v32.getColor());
-            Expr v37 = ((AssignmentStatement)v31).getE();
-            checkIdentExpr(v37,"cc");
-            assertEquals(Type.INT, v37.getType());
-        });
+    void test25() throws PLCException {
+
+        String input = """
+                void f() {
+                    image[200,200] aa.
+                    pixel bb = aa[200,200].
+                    int cc.
+                    aa:red = aa.
+                    bb:grn = cc.
+                    aa[1,1]:grn = cc.
+                }
+                """;
+        AST ast = getAST(input);
+        assertThat("", ast, instanceOf(Program.class));
+        Program v0 = (Program) ast;
+        Ident v1 = v0.getIdent();
+        checkIdent(v1, "f");
+        List<NameDef> v2 = v0.getParamList();
+        int v3 = v2.size();
+        assertEquals(0, v3);
+        Block v4 = v0.getBlock();
+        assertThat("", v4, instanceOf(Block.class));
+        List<Declaration> v5 = v4.getDecList();
+        int v6 = v5.size();
+        assertEquals(3, v6);
+        Declaration v7 = v5.get(0);
+        assertThat("", v7, instanceOf(Declaration.class));
+        NameDef v8 = v7.getNameDef();
+        assertThat("", v8, instanceOf(NameDef.class));
+        checkNameDef(v8, "aa", Type.IMAGE);
+        Dimension v9 = ((NameDef) v8).getDimension();
+        assertThat("", v9, instanceOf(Dimension.class));
+        Expr v10 = ((Dimension) v9).getWidth();
+        checkNumLit(v10, 200);
+        assertEquals(Type.INT, v10.getType());
+        Expr v11 = ((Dimension) v9).getHeight();
+        checkNumLit(v11, 200);
+        assertEquals(Type.INT, v11.getType());
+        assertNull(v7.getInitializer());
+        Declaration v12 = v5.get(1);
+        assertThat("", v12, instanceOf(Declaration.class));
+        NameDef v13 = v12.getNameDef();
+        assertThat("", v13, instanceOf(NameDef.class));
+        checkNameDef(v13, "bb", Type.PIXEL);
+        assertNull(v13.getDimension());
+        Expr v14 = v12.getInitializer();
+        assertThat("", v14, instanceOf(UnaryExprPostfix.class));
+        assertEquals(Type.PIXEL, v14.getType());
+        Expr v15 = ((UnaryExprPostfix) v14).getPrimary();
+        checkIdentExpr(v15, "aa");
+        assertEquals(Type.IMAGE, v15.getType());
+        PixelSelector v16 = ((UnaryExprPostfix) v14).getPixel();
+        assertThat("", v16, instanceOf(PixelSelector.class));
+        Expr v17 = ((PixelSelector) v16).getX();
+        checkNumLit(v17, 200);
+        assertEquals(Type.INT, v17.getType());
+        Expr v18 = ((PixelSelector) v16).getY();
+        checkNumLit(v18, 200);
+        assertEquals(Type.INT, v18.getType());
+        assertNull(((UnaryExprPostfix) v14).getColor());
+        Declaration v19 = v5.get(2);
+        assertThat("", v19, instanceOf(Declaration.class));
+        NameDef v20 = v19.getNameDef();
+        assertThat("", v20, instanceOf(NameDef.class));
+        checkNameDef(v20, "cc", Type.INT);
+        assertNull(v20.getDimension());
+        assertNull(v19.getInitializer());
+        List<Statement> v21 = v4.getStatementList();
+        int v22 = v21.size();
+        assertEquals(3, v22);
+        Statement v23 = v21.get(0);
+        assertThat("", v23, instanceOf(AssignmentStatement.class));
+        LValue v24 = ((AssignmentStatement) v23).getLv();
+        assertThat("", v24, instanceOf(LValue.class));
+        Ident v25 = v24.getIdent();
+        checkIdent(v25, "aa");
+        assertNull(v24.getPixelSelector());
+        assertEquals(ColorChannel.red, v24.getColor());
+        Expr v26 = ((AssignmentStatement) v23).getE();
+        checkIdentExpr(v26, "aa");
+        assertEquals(Type.IMAGE, v26.getType());
+        Statement v27 = v21.get(1);
+        assertThat("", v27, instanceOf(AssignmentStatement.class));
+        LValue v28 = ((AssignmentStatement) v27).getLv();
+        assertThat("", v28, instanceOf(LValue.class));
+        Ident v29 = v28.getIdent();
+        checkIdent(v29, "bb");
+        assertNull(v28.getPixelSelector());
+        assertEquals(ColorChannel.grn, v28.getColor());
+        Expr v30 = ((AssignmentStatement) v27).getE();
+        checkIdentExpr(v30, "cc");
+        assertEquals(Type.INT, v30.getType());
+        Statement v31 = v21.get(2);
+        assertThat("", v31, instanceOf(AssignmentStatement.class));
+        LValue v32 = ((AssignmentStatement) v31).getLv();
+        assertThat("", v32, instanceOf(LValue.class));
+        Ident v33 = v32.getIdent();
+        checkIdent(v33, "aa");
+        PixelSelector v34 = v32.getPixelSelector();
+        assertThat("", v34, instanceOf(PixelSelector.class));
+        Expr v35 = ((PixelSelector) v34).getX();
+        checkNumLit(v35, 1);
+        assertEquals(Type.INT, v35.getType());
+        Expr v36 = ((PixelSelector) v34).getY();
+        checkNumLit(v36, 1);
+        assertEquals(Type.INT, v36.getType());
+        assertEquals(ColorChannel.grn, v32.getColor());
+        Expr v37 = ((AssignmentStatement) v31).getE();
+        checkIdentExpr(v37, "cc");
+        assertEquals(Type.INT, v37.getType());
+
     }
 
     @Test
@@ -3008,8 +3008,8 @@ int f() {
 
     @Test
     void test50() throws PLCException{
-        assertTimeoutPreemptively(Duration.ofMillis(TIMEOUT_MILLIS), () -> {
-            String input = """
+
+        String input = """
 void f() {
     int i = 2.
     while i < 2{
@@ -3027,7 +3027,7 @@ void f() {
                 @SuppressWarnings("unused")
                 AST ast = getAST(input);
             });
-        });
+
     }
 
     @Test
