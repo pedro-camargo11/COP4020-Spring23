@@ -566,6 +566,18 @@ public class TypeCheck implements ASTVisitor {
         if (exprType == programType){ //add assignment compatability logic
             return exprType;
         }
+        else if (programType == Type.PIXEL && exprType == Type.INT ){
+            return exprType;
+        }
+        else if (programType == Type.IMAGE && (exprType == Type.PIXEL || exprType == Type.STRING)){
+            return exprType;
+        }
+        else if (programType == Type.INT && exprType == Type.PIXEL ){
+            return exprType;
+        }
+        else if (programType == Type.STRING && (exprType == Type.INT || exprType == Type.PIXEL || exprType == Type.IMAGE)){
+            return exprType;
+        }
         else{
             throw new TypeCheckException("Type mismatch in ReturnStatement" + returnStatement.getFirstToken().getSourceLocation().column());
         }
