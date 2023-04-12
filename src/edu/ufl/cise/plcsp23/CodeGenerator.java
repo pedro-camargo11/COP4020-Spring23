@@ -100,7 +100,7 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
-        return null;
+        return numLitExpr.getValue();
     }
 
     @Override
@@ -180,7 +180,8 @@ public class CodeGenerator implements ASTVisitor {
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         code.append("return ");
-        code.append(returnStatement.getExpr().visit(this, arg));
+        code.append(returnStatement.getE().visit(this, arg));
+        code.append(";");
         return code;
     }
 
