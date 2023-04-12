@@ -40,6 +40,21 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLCException {
+        //visit children
+        code.append(") { \n");
+
+        List<Declaration> decs = block.getDecList();
+        for (Declaration dec : decs) {
+            dec.visit(this, arg);
+        }
+        List<Statement> statements = block.getStatementList();
+        for (Statement statement : statements) {
+            statement.visit(this, arg);
+        }
+
+        code.append("} \n");
+
+
         return null;
     }
 
@@ -145,11 +160,10 @@ public class CodeGenerator implements ASTVisitor {
                 code.append(paramName);
             }
         }
-        code.append(") { \n");
 
         Block block = program.getBlock();
+        visitBlock(block, arg);
 
-        code.append("} \n");
         code.append("}");
 
 
