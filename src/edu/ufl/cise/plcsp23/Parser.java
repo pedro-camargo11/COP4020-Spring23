@@ -535,7 +535,6 @@ public class Parser implements IParser{
         }
         //if token is ":" it is a channel selector
         if (isKind(IToken.Kind.COLON)){
-            match(IToken.Kind.COLON);
             channelSelector = channel();
         }
         return new LValue (firstToken, ident, pixelSelector, channelSelector);
