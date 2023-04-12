@@ -20,7 +20,7 @@ class Assignment5Test_starter {
 		AST ast = CompilerComponentFactory.makeParser(input).parse();
 		ast.visit(CompilerComponentFactory.makeTypeChecker(), null);		
 		String name = ((Program)ast).getIdent().getName();
-		String packageName = "";
+		String packageName = mypackage;
 		String code = (String) ast.visit(CompilerComponentFactory.makeCodeGenerator(packageName),null);
 		show("**** Generated Code ****");
 		show(code);
