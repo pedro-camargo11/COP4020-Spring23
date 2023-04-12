@@ -42,8 +42,10 @@ public class CompilerComponentFactory {
 		return new TypeCheck();
 	}
 
-	public static ASTVisitor makeCodeGenerator(String package) {
+	public static ASTVisitor makeCodeGenerator(String mypackage) {
+
 		//code to instantiate a return an ASTVisitor for code generation
+		return null;
 	}
 
 
