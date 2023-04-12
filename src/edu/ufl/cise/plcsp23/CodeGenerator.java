@@ -179,7 +179,9 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
-        return null;
+        code.append("return ");
+        code.append(returnStatement.getExpr().visit(this, arg));
+        return code;
     }
 
     @Override
@@ -207,8 +209,9 @@ public class CodeGenerator implements ASTVisitor {
         return null;
     }
 
+
     @Override
     public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
-        return null;
+        return code.append(zExpr.getValue()); //return value 255
     }
 }
