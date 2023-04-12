@@ -1,7 +1,7 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
-
+import java.util.Random;
 import java.util.List;
 
 public class CodeGenerator implements ASTVisitor {
@@ -30,12 +30,12 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitAssignmentStatement not implemented");
     }
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitBinaryExpr not implemented");
     }
 
     @Override
@@ -60,62 +60,62 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitConditionalExpr not implemented");
     }
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitDeclaration not implemented");
     }
 
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
-        return null;
+       throw new RuntimeException("visitDimension not implemented");
     }
 
     @Override
     public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitExpandedPixelExpr not implemented");
     }
 
     @Override
     public Object visitIdent(Ident ident, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitIdent not implemented");
     }
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
-        return null;
+        return identExpr.getName(); //return the name
     }
 
     @Override
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitLValue not implemented");
     }
 
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitNameDef not implemented");
     }
 
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
-        return numLitExpr.getValue();
+        return numLitExpr.getValue(); //return the value
     }
 
     @Override
     public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitPixelFuncExpr not implemented");
     }
 
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitPixelSelector not implemented");
     }
 
     @Override
     public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("visitPredeclaredVarExpr not implemented");
     }
 
     // Generate and return a string containing a valid java class.
@@ -174,7 +174,8 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
-        return null;
+        double random = Math.floor(Math.random() * 256);
+        return code.append(random);
     }
 
     @Override
@@ -187,27 +188,27 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
-        return null;
+        return stringLitExpr.getValue(); //return the stringLit value
     }
 
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("CodeGenerator.visitUnaryExpr not yet implemented");
     }
 
     @Override
     public Object visitUnaryExprPostFix(UnaryExprPostfix unaryExprPostfix, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("CodeGenerator.visitUnaryExprPostFix not yet implemented");
     }
 
     @Override
     public Object visitWhileStatement(WhileStatement whileStatement, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("CodeGenerator.visitWhileStatement not yet implemented");
     }
 
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
-        return null;
+        throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
     }
 
 
