@@ -175,6 +175,20 @@ class Assignment5Test_starter {
 		//should write 2 to OUTPUT
 		assertEquals(null,result);
 	}
+
+	@Test
+	void cgWrite() throws Exception{
+		String input = """
+				void d(string vv){
+				write vv.
+				}
+				""";
+		String v = "hello";
+		Object[] params = {v};
+		Object result = genCodeAndRun(input,"",params);
+		//should write 2 to OUTPUT
+		assertEquals(null,result);
+	}
 	
 	@Test
 	void cg8() throws Exception{

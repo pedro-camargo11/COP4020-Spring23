@@ -3,7 +3,9 @@ package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.*;
 import java.util.Random;
 import java.util.List;
+import edu.ufl.cise.plcsp23.runtime.ConsoleIO;
 
+//Do not use code.append when returning otherwise it will return the entire code
 public class CodeGenerator implements ASTVisitor {
 
     public StringBuilder code;
@@ -28,14 +30,72 @@ public class CodeGenerator implements ASTVisitor {
         return typeString;
     }
 
+    //isKind for Binary Expression Checking in the future
+    protected boolean isKind(IToken.Kind t,IToken.Kind... kinds){
+
+        for(IToken.Kind k:kinds){
+
+            if(k == t){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         throw new RuntimeException("visitAssignmentStatement not implemented");
     }
 
+    //0 -> False
+    //1 -> True
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
-        throw new RuntimeException("visitBinaryExpr not implemented");
+
+        Expr left = binaryExpr.getLeft();
+        IToken.Kind op = binaryExpr.getOp();
+        Expr right = binaryExpr.getRight();
+
+        switch(op){
+
+            case PLUS -> {
+                code.append(left.visit(this, arg));
+                code.append(" + ");
+                code.append(right.visit(this, arg));
+            }
+
+            case MINUS -> {
+                code.append(left.visit(this, arg));
+                code.append(" - ");
+                code.append(right.visit(this, arg));
+            }
+
+            case TIMES -> {
+                code.append(left.visit(this, arg));
+                code.append(" * ");
+                code.append(right.visit(this, arg));
+            }
+
+            case DIV -> {
+                code.append(left.visit(this, arg));
+                code.append(" / ");
+                code.append(right.visit(this, arg));
+            }
+
+            case MOD -> {
+                code.append(left.visit(this, arg));
+                code.append(" % ");
+                code.append(right.visit(this, arg));
+            }
+
+            //Need to deal with the boolean values and how that will be returned via docs.
+
+        }
+
+        //throw new RuntimeException("visitBinaryExpr not implemented");
+
+
+        return "; \n";
     }
 
     @Override
@@ -100,7 +160,8 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
-        return numLitExpr.getValue(); //return the value
+        code.append(numLitExpr.getValue()); //return the value
+        return "; \n"; //append semicolon inside
     }
 
     @Override
@@ -147,7 +208,7 @@ public class CodeGenerator implements ASTVisitor {
             //get name from NameDef
             String paramName = param.getIdent().getName();
 
-            //append to paramString with a , if not the first param
+            //append to paramString with a, if not the first param
             if (i < params.size() - 1){
                 code.append(paramType);
                 code.append(" ");
@@ -171,7 +232,6 @@ public class CodeGenerator implements ASTVisitor {
         return code.toString();
     }
 
-
     @Override
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
         double random = Math.floor(Math.random() * 256);
@@ -182,13 +242,13 @@ public class CodeGenerator implements ASTVisitor {
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         code.append("return ");
         code.append(returnStatement.getE().visit(this, arg));
-        code.append(";");
         return code;
     }
 
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
-        return stringLitExpr.getValue(); //return the stringLit value
+        code.append(stringLitExpr.getValue()); //append the stringLit value
+        return "; \n"; //return the stringLit value
     }
 
     @Override
@@ -206,9 +266,21 @@ public class CodeGenerator implements ASTVisitor {
         throw new RuntimeException("CodeGenerator.visitWhileStatement not yet implemented");
     }
 
+    //This may need a little bit of work -> not yet fully implemented
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
-        throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
+        ConsoleIO consoleIO = new ConsoleIO();
+        Expr e =  statementWrite.getE();
+        if(e.getType() == Type.STRING){
+            consoleIO.write((String) e.visit(this, arg));
+            return "; \n";
+        }
+        else{
+            consoleIO.write((int) e.visit(this, arg));
+            return "; \n";
+        }
+
+        //throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
     }
 
 
