@@ -30,6 +30,28 @@ public class CodeGenerator implements ASTVisitor {
         return typeString;
     }
 
+    void convertBoolean (BinaryExpr binary) throws PLCException{
+
+        Expr left = binary.getLeft();
+        IToken.Kind op = binary.getOp();
+        Expr right = binary.getRight();
+
+        switch(op) {
+
+            case LT -> {
+                code.append(left.visit(this, null));
+                code.append(" < ");
+                code.append(right.visit(this, null));
+            }
+            case GT -> {
+                code.append(left.visit(this, null));
+                code.append(" > ");
+                code.append(right.visit(this, null));
+            }
+
+        }
+    }
+
     //isKind for Binary Expression Checking in the future
     protected boolean isKind(IToken.Kind t,IToken.Kind... kinds){
 
@@ -89,7 +111,9 @@ public class CodeGenerator implements ASTVisitor {
             }
 
             //Need to deal with the boolean values and how that will be returned via docs.
-
+            case LT,GT -> {
+                convertBoolean(binaryExpr);
+            }
         }
 
         //throw new RuntimeException("visitBinaryExpr not implemented");
@@ -106,10 +130,12 @@ public class CodeGenerator implements ASTVisitor {
         List<Declaration> decs = block.getDecList();
         for (Declaration dec : decs) {
             dec.visit(this, arg);
+            code.append("; \n");
         }
         List<Statement> statements = block.getStatementList();
         for (Statement statement : statements) {
             statement.visit(this, arg);
+            code.append("; \n");
         }
 
         code.append("} \n");
@@ -120,12 +146,34 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException {
-        throw new RuntimeException("visitConditionalExpr not implemented");
+        Expr condition = conditionalExpr.getGuard();
+        Expr trueExpr = conditionalExpr.getTrueCase();
+        Expr falseExpr = conditionalExpr.getFalseCase();
+
+        code.append("(");
+        condition.visit(this, arg); //needs to do something here to return an integer
+        code.append(") ? ");
+        trueExpr.visit(this, arg);
+        code.append(" : ");
+        falseExpr.visit(this, arg);
+
+        //don't know what to return
+        return "";
+        //throw new RuntimeException("visitConditionalExpr not implemented");
     }
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
-        throw new RuntimeException("visitDeclaration not implemented");
+        NameDef nameDef = declaration.getNameDef();
+        nameDef.visit(this, arg);
+
+        if(declaration.getInitializer() != null){
+            code.append(" = ");
+            declaration.getInitializer().visit(this, arg);
+        }
+
+        return " ";
+        //throw new RuntimeException("visitDeclaration not implemented");
     }
 
     @Override
@@ -155,13 +203,22 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
-        throw new RuntimeException("visitNameDef not implemented");
+        Type type = nameDef.getType();
+        String typeString = getTypeAsString(type);
+        String name = nameDef.getIdent().getName();
+
+        code.append(typeString);
+        code.append(" ");
+        code.append(name);
+        return " "; //append semicolon inside
+
+        //throw new RuntimeException("visitNameDef not implemented");
     }
 
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
         code.append(numLitExpr.getValue()); //return the value
-        return "; \n"; //append semicolon inside
+        return " "; //append semicolon inside
     }
 
     @Override
@@ -247,8 +304,10 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
+        code.append("\"");
         code.append(stringLitExpr.getValue()); //append the stringLit value
-        return "; \n"; //return the stringLit value
+        code.append("\"");
+        return " "; //return the stringLit value
     }
 
     @Override
