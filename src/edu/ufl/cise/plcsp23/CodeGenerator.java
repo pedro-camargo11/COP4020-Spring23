@@ -119,7 +119,7 @@ public class CodeGenerator implements ASTVisitor {
         //throw new RuntimeException("visitBinaryExpr not implemented");
 
 
-        return "; \n";
+        return "";
     }
 
     @Override
