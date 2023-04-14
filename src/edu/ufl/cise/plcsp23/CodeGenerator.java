@@ -284,8 +284,6 @@ public class CodeGenerator implements ASTVisitor {
 
         code.append("}");
 
-
-
         return code.toString();
     }
 
@@ -325,20 +323,22 @@ public class CodeGenerator implements ASTVisitor {
         throw new RuntimeException("CodeGenerator.visitWhileStatement not yet implemented");
     }
 
-    //This may need a little bit of work -> not yet fully implemented
+    //Fixed: Note that if you have a semicolon on an empty line, it will be ignored.
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
         ConsoleIO consoleIO = new ConsoleIO();
         Expr e =  statementWrite.getE();
-        String ident = e.visit(this, arg).toString();
+
         if(e.getType() == Type.STRING){
-            consoleIO.write((String) e.visit(this, arg));
+            consoleIO.write(e.getType().name());
             return "";
         }
         else{
-            consoleIO.write((String)e.visit(this, arg));
+            consoleIO.write(e.getType().ordinal());
             return "";
         }
+
+
 
         //throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
     }
