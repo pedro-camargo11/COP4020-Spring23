@@ -330,13 +330,14 @@ public class CodeGenerator implements ASTVisitor {
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
         ConsoleIO consoleIO = new ConsoleIO();
         Expr e =  statementWrite.getE();
+        String ident = e.visit(this, arg).toString();
         if(e.getType() == Type.STRING){
             consoleIO.write((String) e.visit(this, arg));
-            return "; \n";
+            return "";
         }
         else{
-            consoleIO.write((int) e.visit(this, arg));
-            return "; \n";
+            consoleIO.write((String)e.visit(this, arg));
+            return "";
         }
 
         //throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
