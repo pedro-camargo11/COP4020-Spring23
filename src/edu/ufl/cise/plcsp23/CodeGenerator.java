@@ -55,14 +55,18 @@ public class CodeGenerator implements ASTVisitor {
             }
             case GE -> {
                 //If true append 1, else append 0
-                Expr lh = binary.getLeft();
-                Expr rh = binary.getRight();
+                //Expr lh = binary.getLeft();
+                //Expr rh = binary.getRight();
                 //int leftHand = lh.
-//                code.append(left.visit(this, null));
-//                code.append(" >= ");
-//                code.append(right.visit(this, null));
+                code.append(left.visit(this, null));
+                code.append(" >= ");
+                code.append(right.visit(this, null));
             }
-
+            case EQ -> {
+                code.append(left.visit(this, null));
+                code.append(" == ");
+                code.append(right.visit(this, null));
+            }
         }
     }
 
@@ -137,7 +141,7 @@ public class CodeGenerator implements ASTVisitor {
             }
 
             //Need to deal with the boolean values and how that will be returned via docs.
-            case LT,GT, LE, GE -> {
+            case LT,GT, LE, GE, EQ -> {
                 convertBoolean(binaryExpr);
             }
         }
