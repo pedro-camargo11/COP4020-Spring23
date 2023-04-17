@@ -48,6 +48,20 @@ public class CodeGenerator implements ASTVisitor {
                 code.append(" > ");
                 code.append(right.visit(this, null));
             }
+            case LE -> {
+                code.append(left.visit(this, null));
+                code.append(" <= ");
+                code.append(right.visit(this, null));
+            }
+            case GE -> {
+                //If true append 1, else append 0
+                Expr lh = binary.getLeft();
+                Expr rh = binary.getRight();
+                //int leftHand = lh.
+//                code.append(left.visit(this, null));
+//                code.append(" >= ");
+//                code.append(right.visit(this, null));
+            }
 
         }
     }
@@ -64,9 +78,21 @@ public class CodeGenerator implements ASTVisitor {
         return false;
     }
 
+    //LVALUE = EXPR
+    //where LVALUE is obtained by visiting
+    //LValue, and EXPR is obtained by visiting
+    //Expr
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
-        throw new RuntimeException("visitAssignmentStatement not implemented");
+        LValue lv = statementAssign.getLv();
+        Expr e = statementAssign.getE();
+
+        lv.visit(this, arg);
+        code.append(" = ");
+        e.visit(this, arg);
+
+        return " \n";
+        //throw new RuntimeException("visitAssignmentStatement not implemented");
     }
 
     //0 -> False
@@ -111,7 +137,7 @@ public class CodeGenerator implements ASTVisitor {
             }
 
             //Need to deal with the boolean values and how that will be returned via docs.
-            case LT,GT -> {
+            case LT,GT, LE, GE -> {
                 convertBoolean(binaryExpr);
             }
         }
@@ -135,6 +161,7 @@ public class CodeGenerator implements ASTVisitor {
         List<Statement> statements = block.getStatementList();
         for (Statement statement : statements) {
             statement.visit(this, arg);
+            //if statement is not a while statement, add semicolon I THINK?
             code.append("; \n");
         }
 
@@ -162,6 +189,7 @@ public class CodeGenerator implements ASTVisitor {
         //throw new RuntimeException("visitConditionalExpr not implemented");
     }
 
+    //all declarations have to be unique. implement a check for that with a set
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         NameDef nameDef = declaration.getNameDef();
@@ -193,12 +221,16 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
-        return identExpr.getName(); //return the name
+        code.append(identExpr.getName());
+        return " ";
     }
 
     @Override
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
-        throw new RuntimeException("visitLValue not implemented");
+        String ident = lValue.getIdent().getName();
+        code.append(ident);
+        return " "; //append semicolon inside
+        //later consider the case with a pixel selector and channel selector
     }
 
     @Override
@@ -318,9 +350,24 @@ public class CodeGenerator implements ASTVisitor {
         throw new RuntimeException("CodeGenerator.visitUnaryExprPostFix not yet implemented");
     }
 
+    //If your input program has redeclared an
+    //identifier in the inner scope, a straightforward
+    //translation into Java will not work. To get full
+    //credit, you will need to handle this case. One
+    //easy way to do it is to give each variable a
+    //unique name in the generated java code.
+    //You may find it easiest to do this in the type
+    //checking pass
     @Override
     public Object visitWhileStatement(WhileStatement whileStatement, Object arg) throws PLCException {
-        throw new RuntimeException("CodeGenerator.visitWhileStatement not yet implemented");
+        code.append("while(");
+        Expr condition = whileStatement.getGuard();
+        condition.visit(this, arg);
+
+        Block block = whileStatement.getBlock();
+        block.visit(this, arg);
+        //code.append("}");
+        return " \n";
     }
 
     //Fixed: Note that if you have a semicolon on an empty line, it will be ignored.
