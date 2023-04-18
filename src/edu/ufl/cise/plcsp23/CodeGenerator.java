@@ -180,8 +180,11 @@ public class CodeGenerator implements ASTVisitor {
         Expr trueExpr = conditionalExpr.getTrueCase();
         Expr falseExpr = conditionalExpr.getFalseCase();
 
-        code.append("(");
-        condition.visit(this, arg); //needs to do something here to return an integer
+        code.append("(");  //needs to do something here to return an integer
+        //check to see if it is not equal to 0 -> same logic for while statement
+        condition.visit(this, arg);
+        code.append(" != 0");
+
         code.append(") ? ");
         trueExpr.visit(this, arg);
         code.append(" : ");
