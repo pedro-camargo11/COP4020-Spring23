@@ -90,7 +90,6 @@ public class CodeGenerator implements ASTVisitor {
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         LValue lv = statementAssign.getLv();
         Expr e = statementAssign.getE();
-
         lv.visit(this, arg);
         code.append(" = ");
         e.visit(this, arg);
@@ -201,7 +200,16 @@ public class CodeGenerator implements ASTVisitor {
 
         if(declaration.getInitializer() != null){
             code.append(" = ");
-            declaration.getInitializer().visit(this, arg);
+            Expr e = declaration.getInitializer();
+
+            //if e is an instance of BinaryExpr, then we need to append a number to it
+            if(e instanceof BinaryExpr && isKind(((BinaryExpr) e).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ)){
+                e.visit(this,arg);
+                code.append("? 1 : 0");
+            }
+            else{
+                e.visit(this, arg);
+            }
         }
 
         return " ";
