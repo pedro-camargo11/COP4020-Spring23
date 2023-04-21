@@ -182,13 +182,28 @@ public class CodeGenerator implements ASTVisitor {
 
         code.append("(");  //needs to do something here to return an integer
         //check to see if it is not equal to 0 -> same logic for while statement
-        condition.visit(this, arg);
-        code.append(" != 0");
+        if(condition instanceof BinaryExpr){
 
-        code.append(") ? ");
-        trueExpr.visit(this, arg);
-        code.append(" : ");
-        falseExpr.visit(this, arg);
+            condition.visit(this, arg);
+            code.append(") ? ");
+            trueExpr.visit(this, arg);
+            code.append(" : ");
+            falseExpr.visit(this, arg);
+        }
+        else{
+
+            condition.visit(this, arg);
+            code.append(" != 0");
+            code.append(") ? ");
+            trueExpr.visit(this, arg);
+            code.append(" : ");
+            falseExpr.visit(this, arg);
+
+        }
+
+
+
+
 
         //don't know what to return
         return "";
