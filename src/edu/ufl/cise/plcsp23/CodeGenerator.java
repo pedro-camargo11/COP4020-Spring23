@@ -408,18 +408,15 @@ public class CodeGenerator implements ASTVisitor {
     //Fixed: Note that if you have a semicolon on an empty line, it will be ignored.
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
-        ConsoleIO consoleIO = new ConsoleIO();
-        Expr e =  statementWrite.getE();
 
-        if(e.getType() == Type.STRING){
-            consoleIO.write(e.getType().name());
-            return "";
-        }
-        else{
-            consoleIO.write(e.getType().ordinal());
-            return "";
-        }
+        code.insert(0,"importedu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
 
+        Expr e = statementWrite.getE();
+        code.append("ConsoleIO.print(");
+        code.append(e.visit(this, arg));
+        code.append(")");
+
+        return "";
         //throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
     }
 
