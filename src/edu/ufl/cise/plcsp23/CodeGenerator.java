@@ -181,6 +181,7 @@ public class CodeGenerator implements ASTVisitor {
         Expr falseExpr = conditionalExpr.getFalseCase();
 
         code.append("(");  //needs to do something here to return an integer
+
         //check to see if it is not equal to 0 -> same logic for while statement
         if(condition instanceof BinaryExpr){
 
@@ -200,14 +201,7 @@ public class CodeGenerator implements ASTVisitor {
             falseExpr.visit(this, arg);
 
         }
-
-
-
-
-
-        //don't know what to return
         return "";
-        //throw new RuntimeException("visitConditionalExpr not implemented");
     }
 
     //all declarations have to be unique. implement a check for that with a set
@@ -392,10 +386,21 @@ public class CodeGenerator implements ASTVisitor {
     public Object visitWhileStatement(WhileStatement whileStatement, Object arg) throws PLCException {
         code.append("while(");
         Expr condition = whileStatement.getGuard();
-        condition.visit(this, arg);
 
-        Block block = whileStatement.getBlock();
-        block.visit(this, arg);
+        if(condition instanceof BinaryExpr){
+
+            condition.visit(this, arg);
+            Block block = whileStatement.getBlock();
+            block.visit(this, arg);
+        }
+        else{
+
+            condition.visit(this, arg);
+            code.append(" != 0");
+            Block block = whileStatement.getBlock();
+            block.visit(this, arg);
+        }
+
         //code.append("}");
         return " \n";
     }
@@ -414,8 +419,6 @@ public class CodeGenerator implements ASTVisitor {
             consoleIO.write(e.getType().ordinal());
             return "";
         }
-
-
 
         //throw new RuntimeException("CodeGenerator.visitWriteStatement not yet implemented");
     }
