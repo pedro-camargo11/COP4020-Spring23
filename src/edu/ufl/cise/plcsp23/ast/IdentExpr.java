@@ -14,7 +14,8 @@ import edu.ufl.cise.plcsp23.IToken;
 import edu.ufl.cise.plcsp23.PLCException;
 
 public class IdentExpr extends Expr {
-		
+
+	String javaName = "";
 	public IdentExpr(IToken firstToken) {
 		super(firstToken);
 	}
@@ -31,6 +32,16 @@ public class IdentExpr extends Expr {
 	@Override
 	public String toString() {
 		return "IdentExpr [firstToken=" + firstToken + "]";
+	}
+
+	//getter
+	public String getJavaName() {
+		return javaName;
+	}
+
+	//setter
+	public void setJavaName(String javaName) {
+		this.javaName = javaName;
 	}
 	
 

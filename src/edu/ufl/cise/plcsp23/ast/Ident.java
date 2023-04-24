@@ -17,6 +17,8 @@ public class Ident extends AST {
 	
 	NameDef def;
 
+	String javaName = "";
+
 	public Ident(IToken firstToken) {
 		super(firstToken);
 	}
@@ -41,6 +43,16 @@ public class Ident extends AST {
 	@Override
 	public String toString() {
 		return "Ident [getName()=" + getName() + ", getDef()=" + getDef() + "]";
+	}
+
+	//getter
+	public String getJavaName() {
+		return javaName;
+	}
+
+	//setter
+	public void setJavaName(String javaName) {
+		this.javaName = javaName;
 	}
 
 }

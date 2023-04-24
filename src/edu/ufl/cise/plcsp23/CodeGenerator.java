@@ -245,13 +245,13 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
-        code.append(identExpr.getName());
+        code.append(identExpr.getJavaName());
         return " ";
     }
 
     @Override
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
-        String ident = lValue.getIdent().getName();
+        String ident = lValue.getIdent().getJavaName();
         code.append(ident);
         return " "; //append semicolon inside
         //later consider the case with a pixel selector and channel selector
@@ -261,7 +261,7 @@ public class CodeGenerator implements ASTVisitor {
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
         Type type = nameDef.getType();
         String typeString = getTypeAsString(type);
-        String name = nameDef.getIdent().getName();
+        String name = nameDef.getIdent().getJavaName();
 
         code.append(typeString);
         code.append(" ");
@@ -303,6 +303,7 @@ public class CodeGenerator implements ASTVisitor {
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
         String name = program.getIdent().getName();
+        code.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
         code.append("public class ");
         code.append(name);
         code.append(" { \n");
@@ -319,7 +320,7 @@ public class CodeGenerator implements ASTVisitor {
             String paramType = getTypeAsString(param.getType());
 
             //get name from NameDef
-            String paramName = param.getIdent().getName();
+            String paramName = param.getIdent().getJavaName();
 
             //append to paramString with a, if not the first param
             if (i < params.size() - 1){
@@ -409,10 +410,10 @@ public class CodeGenerator implements ASTVisitor {
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
 
-        code.insert(0,"importedu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
+        //code.insert(0,"import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
 
         Expr e = statementWrite.getE();
-        code.append("ConsoleIO.print(");
+        code.append("ConsoleIO.write(");
         code.append(e.visit(this, arg));
         code.append(")");
 

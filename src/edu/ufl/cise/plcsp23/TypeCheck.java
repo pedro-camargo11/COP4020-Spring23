@@ -72,6 +72,7 @@ public class TypeCheck implements ASTVisitor {
                 list = new LinkedList<Pair<NameDef, Integer>>();
                 list.addFirst(new Pair<NameDef, Integer>(nameDef, currScope));
                 symbolTable.put(name, list);
+                nameDef.setIdentJavaName(name + list.size());
                 return true;
             }
             else {
@@ -82,6 +83,7 @@ public class TypeCheck implements ASTVisitor {
                 }
                 list.addFirst(new Pair<NameDef, Integer>(nameDef, currScope));
                 symbolTable.put(name, list);
+                nameDef.setIdentJavaName(name + list.size());
                 return true;
             }
         }
@@ -360,13 +362,15 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitIdent (Ident ident, Object arg) throws PLCException {
-        return null;
+         ident.setJavaName(symbolTable.lookup(ident.getName()).getIdent().getJavaName());
+         return null;
     }
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
         String name = identExpr.getName();
         NameDef def = symbolTable.lookup(name);
+        identExpr.setJavaName(def.getIdent().getJavaName());
         if (def != null) {
              identExpr.setType(def.getType());
              return def.getType();
@@ -377,6 +381,7 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitLValue (LValue lValue, Object arg) throws PLCException {
 
+        lValue.getIdent().visit(this, arg);
         String name = lValue.getIdent().getName();
         PixelSelector pixel = lValue.getPixelSelector();
         ColorChannel color = lValue.getColor();

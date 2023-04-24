@@ -18,6 +18,8 @@ public class NameDef extends AST {
 	final Type type;
 	final Dimension dimension;
 	final Ident ident;
+
+	String javaName = "";
 	
 	public NameDef(IToken firstToken, Type type, Dimension dimension, Ident ident) {
 		super(firstToken);
@@ -48,6 +50,14 @@ public class NameDef extends AST {
 		return "NameDef [type=" + type + ", dimension=" + dimension + ", ident=" + ident + "]";
 	}
 
-	
+	//getter
+	public String getJavaName() {
+		return javaName;
+	}
+
+	//setter
+	public void setIdentJavaName(String javaName) {
+		this.ident.setJavaName(javaName);
+	}
 	
 }
