@@ -67,20 +67,32 @@ public class CodeGenerator implements ASTVisitor {
 
             case AND -> {
                 code.append(left.visit(this, null));
-                code.append(" != 0");
+                if(!(left instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
+                    code.append(" != 0");
+                }
                 code.append(" && ");
                 code.append(right.visit(this, null));
-                code.append(" != 0");
+                if(!(right instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
+                    code.append(" != 0");
+                }
+
             }
 
             case OR -> {
                 code.append(left.visit(this, null));
-                code.append(" != 0");
+                if(!(left instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
+                    code.append(" != 0");
+                }
+
                 code.append(" || ");
                 code.append(right.visit(this, null));
-                code.append(" != 0");
+                if(!(right instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
+                    code.append(" != 0");
+                }
+
             }
         }
+
     }
 
     //isKind for Binary Expression Checking in the future
@@ -123,6 +135,7 @@ public class CodeGenerator implements ASTVisitor {
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
 
+        code.append("(");
         Expr left = binaryExpr.getLeft();
         IToken.Kind op = binaryExpr.getOp();
         Expr right = binaryExpr.getRight();
@@ -176,7 +189,7 @@ public class CodeGenerator implements ASTVisitor {
 
         //throw new RuntimeException("visitBinaryExpr not implemented");
 
-
+        code.append(")");
         return "";
     }
 
