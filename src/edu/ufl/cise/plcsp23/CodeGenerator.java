@@ -11,6 +11,8 @@ public class CodeGenerator implements ASTVisitor {
     public StringBuilder code;
     public String packages;
 
+    Type returnType;
+
     public CodeGenerator(String packageName) {
         code = new StringBuilder();
         packages = packageName;
@@ -111,6 +113,7 @@ public class CodeGenerator implements ASTVisitor {
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         LValue lv = statementAssign.getLv();
         Expr e = statementAssign.getE();
+
         lv.visit(this, arg);
         code.append(" = ");
         e.visit(this, arg);
@@ -237,8 +240,17 @@ public class CodeGenerator implements ASTVisitor {
         if(declaration.getInitializer() != null){
             code.append(" = ");
             Expr e = declaration.getInitializer();
-            e.visit(this,arg);
 
+            if (nameDef.getType() == Type.STRING && e.getType() == Type.INT)
+            {
+                code.append("Integer.toString(");
+                e.visit(this,arg);
+                code.append(")");
+            }
+            else
+            {
+                e.visit(this,arg);
+            }
         }
 
         return " ";
@@ -319,6 +331,8 @@ public class CodeGenerator implements ASTVisitor {
     // Block contains the declarations and the statements in Block
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
+        returnType = program.getType();
+
         String name = program.getIdent().getName();
         code.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
         code.append("public class ");
@@ -370,7 +384,17 @@ public class CodeGenerator implements ASTVisitor {
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         code.append("return ");
-        code.append(returnStatement.getE().visit(this, arg));
+
+        if (returnStatement.getE().getType() == Type.INT && returnType == Type.STRING)
+        {
+            code.append("String.valueOf(");
+            code.append(returnStatement.getE().visit(this, arg));
+            code.append(")");
+        }
+        else
+        {
+            code.append(returnStatement.getE().visit(this, arg));
+        }
         return code;
     }
 
