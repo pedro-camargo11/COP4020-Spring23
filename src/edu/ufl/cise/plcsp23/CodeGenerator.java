@@ -101,8 +101,15 @@ public class CodeGenerator implements ASTVisitor {
         Expr e = statementAssign.getE();
         lv.visit(this, arg);
         code.append(" = ");
-        e.visit(this, arg);
 
+        //if e is an instance of BinaryExpr, then we need to append a number to it
+        if(e instanceof BinaryExpr && isKind(((BinaryExpr) e).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR)){
+            e.visit(this,arg);
+            code.append("? 1 : 0");
+        }
+        else{
+            e.visit(this, arg);
+        }
         return " \n";
         //throw new RuntimeException("visitAssignmentStatement not implemented");
     }
