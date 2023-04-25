@@ -161,7 +161,7 @@ public class CodeGenerator implements ASTVisitor {
 
             case EXP -> {
                 code.insert(0, "import java.lang.Math; \n");
-                code.append("Math.pow(");
+                code.append("(int) Math.pow(");
                 code.append(left.visit(this, arg));
                 code.append(", ");
                 code.append(right.visit(this, arg));
