@@ -430,7 +430,7 @@ public class CodeGenerator implements ASTVisitor {
         code.append("while(");
         Expr condition = whileStatement.getGuard();
 
-        if(condition instanceof BinaryExpr){
+        if(condition instanceof BinaryExpr && isKind(((BinaryExpr) condition).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR)){
 
             condition.visit(this, arg);
             Block block = whileStatement.getBlock();
