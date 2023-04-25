@@ -66,32 +66,28 @@ public class CodeGenerator implements ASTVisitor {
             }
 
             case AND -> {
+                code.append("(");
                 code.append(left.visit(this, null));
-                if(!(left instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
-                    code.append(" != 0");
-                }
+                code.append(" != 0)");
                 code.append(" && ");
+                code.append("(");
                 code.append(right.visit(this, null));
-                if(!(right instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
-                    code.append(" != 0");
-                }
+                code.append(" != 0)");
 
             }
 
             case OR -> {
+                code.append("(");
                 code.append(left.visit(this, null));
-                if(!(left instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
-                    code.append(" != 0");
-                }
-
+                code.append(" != 0)");
                 code.append(" || ");
+                code.append("(");
                 code.append(right.visit(this, null));
-                if(!(right instanceof BinaryExpr && isKind(((BinaryExpr) left).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR))){
-                    code.append(" != 0");
-                }
-
+                code.append(" != 0)");
             }
         }
+
+        code.append(" ? 1 : 0");
 
     }
 
@@ -117,15 +113,8 @@ public class CodeGenerator implements ASTVisitor {
         Expr e = statementAssign.getE();
         lv.visit(this, arg);
         code.append(" = ");
+        e.visit(this, arg);
 
-        //if e is an instance of BinaryExpr, then we need to append a number to it
-        if(e instanceof BinaryExpr && isKind(((BinaryExpr) e).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR)){
-            e.visit(this,arg);
-            code.append("? 1 : 0");
-        }
-        else{
-            e.visit(this, arg);
-        }
         return " \n";
         //throw new RuntimeException("visitAssignmentStatement not implemented");
     }
@@ -225,15 +214,8 @@ public class CodeGenerator implements ASTVisitor {
         code.append("(");  //needs to do something here to return an integer
 
         //check to see if it is not equal to 0 -> same logic for while statement
-        if(condition instanceof BinaryExpr){
 
-            condition.visit(this, arg);
-            code.append(") ? ");
-            trueExpr.visit(this, arg);
-            code.append(" : ");
-            falseExpr.visit(this, arg);
-        }
-        else{
+
 
             condition.visit(this, arg);
             code.append(" != 0");
@@ -242,7 +224,7 @@ public class CodeGenerator implements ASTVisitor {
             code.append(" : ");
             falseExpr.visit(this, arg);
 
-        }
+
         return "";
     }
 
@@ -255,15 +237,8 @@ public class CodeGenerator implements ASTVisitor {
         if(declaration.getInitializer() != null){
             code.append(" = ");
             Expr e = declaration.getInitializer();
+            e.visit(this,arg);
 
-            //if e is an instance of BinaryExpr, then we need to append a number to it
-            if(e instanceof BinaryExpr && isKind(((BinaryExpr) e).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR)){
-                e.visit(this,arg);
-                code.append("? 1 : 0");
-            }
-            else{
-                e.visit(this, arg);
-            }
         }
 
         return " ";
@@ -430,19 +405,13 @@ public class CodeGenerator implements ASTVisitor {
         code.append("while(");
         Expr condition = whileStatement.getGuard();
 
-        if(condition instanceof BinaryExpr && isKind(((BinaryExpr) condition).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR)){
 
-            condition.visit(this, arg);
-            Block block = whileStatement.getBlock();
-            block.visit(this, arg);
-        }
-        else{
 
             condition.visit(this, arg);
             code.append(" != 0");
             Block block = whileStatement.getBlock();
             block.visit(this, arg);
-        }
+
 
         //code.append("}");
         return " \n";
