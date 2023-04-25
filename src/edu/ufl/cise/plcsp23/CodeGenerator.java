@@ -67,14 +67,18 @@ public class CodeGenerator implements ASTVisitor {
 
             case AND -> {
                 code.append(left.visit(this, null));
+                code.append(" != 0");
                 code.append(" && ");
                 code.append(right.visit(this, null));
+                code.append(" != 0");
             }
 
             case OR -> {
                 code.append(left.visit(this, null));
+                code.append(" != 0");
                 code.append(" || ");
                 code.append(right.visit(this, null));
+                code.append(" != 0");
             }
         }
     }
