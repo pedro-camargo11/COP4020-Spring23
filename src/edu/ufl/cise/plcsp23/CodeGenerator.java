@@ -55,9 +55,6 @@ public class CodeGenerator implements ASTVisitor {
             }
             case GE -> {
                 //If true append 1, else append 0
-                //Expr lh = binary.getLeft();
-                //Expr rh = binary.getRight();
-                //int leftHand = lh.
                 code.append(left.visit(this, null));
                 code.append(" >= ");
                 code.append(right.visit(this, null));
@@ -65,6 +62,18 @@ public class CodeGenerator implements ASTVisitor {
             case EQ -> {
                 code.append(left.visit(this, null));
                 code.append(" == ");
+                code.append(right.visit(this, null));
+            }
+
+            case AND -> {
+                code.append(left.visit(this, null));
+                code.append(" && ");
+                code.append(right.visit(this, null));
+            }
+
+            case OR -> {
+                code.append(left.visit(this, null));
+                code.append(" || ");
                 code.append(right.visit(this, null));
             }
         }
@@ -139,8 +148,17 @@ public class CodeGenerator implements ASTVisitor {
                 code.append(right.visit(this, arg));
             }
 
+            case EXP -> {
+                code.insert(0, "import java.lang.Math; \n");
+                code.append("Math.pow(");
+                code.append(left.visit(this, arg));
+                code.append(", ");
+                code.append(right.visit(this, arg));
+                code.append(")");
+            }
+
             //Need to deal with the boolean values and how that will be returned via docs.
-            case LT,GT, LE, GE, EQ -> {
+            case LT,GT, LE, GE, EQ, AND, OR-> {
                 convertBoolean(binaryExpr);
             }
         }
@@ -215,7 +233,7 @@ public class CodeGenerator implements ASTVisitor {
             Expr e = declaration.getInitializer();
 
             //if e is an instance of BinaryExpr, then we need to append a number to it
-            if(e instanceof BinaryExpr && isKind(((BinaryExpr) e).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ)){
+            if(e instanceof BinaryExpr && isKind(((BinaryExpr) e).getOp(), IToken.Kind.LT, IToken.Kind.GT, IToken.Kind.LE, IToken.Kind.GE, IToken.Kind.EQ, IToken.Kind.AND, IToken.Kind.OR)){
                 e.visit(this,arg);
                 code.append("? 1 : 0");
             }
