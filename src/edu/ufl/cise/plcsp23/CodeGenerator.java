@@ -464,7 +464,20 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
-        throw new RuntimeException("visitExpandedPixelExpr not implemented");
+
+        Expr red = expandedPixelExpr.getRedExpr();
+        Expr grn = expandedPixelExpr.getGrnExpr();
+        Expr blu = expandedPixelExpr.getBluExpr();
+
+        code.append("PixelOps.pack(");
+        code.append(red.visit(this, arg));
+        code.append(", ");
+        code.append(grn.visit(this, arg));
+        code.append(", ");
+        code.append(blu.visit(this, arg));
+        code.append(")");
+
+        return "";
     }
 
     @Override
