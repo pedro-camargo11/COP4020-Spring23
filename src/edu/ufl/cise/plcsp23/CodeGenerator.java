@@ -111,11 +111,15 @@ public class CodeGenerator implements ASTVisitor {
     //Expr
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
-        LValue lv = statementAssign.getLv();
-        Expr e = statementAssign.getE();
+        LValue lv = statementAssign.getLv(); //lv is left hand side
+        Expr e = statementAssign.getE(); //e is right hand side
+        Type lvType = lv.getIdent().getDef().getType();
 
-        lv.visit(this, arg);
-        code.append(" = ");
+        //if the left hand side is not an image, visit it.
+        if(lvType != Type.IMAGE){
+            lv.visit(this, arg);
+            code.append(" = ");
+        }
 
         if (lv.getIdent().getDef().getType() == Type.STRING && e.getType() == Type.INT)
         {
@@ -125,8 +129,50 @@ public class CodeGenerator implements ASTVisitor {
             return "";
         }
         else{
-            e.visit(this, arg);
+
+            //If the variable type is a pixel, use PixelOps.pack()
+            if(lvType == Type.PIXEL){
+                e.visit(this, arg);
+
+            }
+
+             if(lvType == Type.IMAGE && lv.getPixelSelector() == null && lv.getColor() == null){
+
+                if(e.getType() == Type.STRING){
+                    code.append("ImageOps.copyInto(FileURLIO.readImage(");
+                    code.append(e.visit(this, arg));
+                    code.append("), ");
+                    code.append(lv.visit(this, arg));
+                    code.append(")");
+                }
+                else if(e.getType() == Type.IMAGE){
+                    code.append("ImageOps.copyInto(");
+                    code.append(e.visit(this, arg));
+                    code.append(", ");
+                    code.append(lv.visit(this, arg));
+                    code.append(")");
+                }
+                else if(e.getType() == Type.PIXEL){
+                    code.append("ImageOps.setAllPixels(");
+                    code.append(lv.visit(this, arg));
+                    code.append(", ");
+                    code.append(e.visit(this, arg));
+                    code.append(")");
+                }
+                else{
+                    e.visit(this, arg);
+                }
+
+             }
+             else if(lvType == Type.IMAGE && lv.getPixelSelector() != null && lv.getColor() == null){
+
+             }
+             else{
+                e.visit(this, arg);
+             }
         }
+
+
 
         return " \n";
         //throw new RuntimeException("visitAssignmentStatement not implemented");
@@ -345,25 +391,28 @@ public class CodeGenerator implements ASTVisitor {
             else if (nameDef.getType() == Type.PIXEL) //cases where NameDef is a PIXEL
             {
                 //case where the initializer is a PIXEL
-                if (e instanceof ExpandedPixelExpr)
-                {
-                    Expr r = ((ExpandedPixelExpr) e).getRedExpr();
-                    Expr g = ((ExpandedPixelExpr) e).getGrnExpr();
-                    Expr b = ((ExpandedPixelExpr) e).getBluExpr();
-                    //need to extract rgb calues as ints and append to pixel ops pack
-                    code.append("PixelOps.pack(");
-                    code.append(r.visit(this,arg));
-                    code.append(", ");
-                    code.append(g.visit(this,arg));
-                    code.append(", ");
-                    code.append(b.visit(this,arg));
-                    code.append(")");
-                    return "";
+//                if (e instanceof ExpandedPixelExpr)
+//                {
+//                    Expr r = ((ExpandedPixelExpr) e).getRedExpr();
+//                    Expr g = ((ExpandedPixelExpr) e).getGrnExpr();
+//                    Expr b = ((ExpandedPixelExpr) e).getBluExpr();
+//                    //need to extract rgb calues as ints and append to pixel ops pack
+//                    code.append("PixelOps.pack(");
+//                    code.append(r.visit(this,arg));
+//                    code.append(", ");
+//                    code.append(g.visit(this,arg));
+//                    code.append(", ");
+//                    code.append(b.visit(this,arg));
+//                    code.append(")");
+//                    return "";
+//
+//                }
+//                else {
+//                    e.visit(this,arg);
+//                }
 
-                }
-                else {
-                    e.visit(this,arg);
-                }
+                e.visit(this,arg);
+                return "";
 
             }
             else
@@ -535,12 +584,35 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
-        throw new RuntimeException("visitPixelSelector not implemented");
+
+        Expr x = pixelSelector.getX();
+        Expr y = pixelSelector.getY();
+
+        code.append("(");
+        code.append(x.visit(this, arg));
+        code.append(", ");
+        code.append(y.visit(this, arg));
+        code.append(")");
+
+        return "";
+        
+        //throw new RuntimeException("visitPixelSelector not implemented");
     }
 
     @Override
     public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
-        throw new RuntimeException("visitPredeclaredVarExpr not implemented");
+
+        IToken.Kind predeclaredKind = predeclaredVarExpr.getKind();
+
+        switch(predeclaredKind) {
+
+            case RES_x -> code.append("x");
+            case RES_y -> code.append("y");
+            default -> throw new RuntimeException("Selected predeclared variable is not x or y");
+        }
+
+        return "";
+        //throw new RuntimeException("visitPredeclaredVarExpr not implemented");
     }
 
     // Generate and return a string containing a valid java class.
@@ -796,6 +868,7 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
-        return code.append(zExpr.getValue()); //return value 255
+        code.append(zExpr.getValue());
+        return ""; //return value 255
     }
 }
