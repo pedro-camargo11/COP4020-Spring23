@@ -93,18 +93,6 @@ public class CodeGenerator implements ASTVisitor {
 
     }
 
-    //isKind for Binary Expression Checking in the future
-//    protected boolean isKind(IToken.Kind t,IToken.Kind... kinds){
-//
-//        for(IToken.Kind k:kinds){
-//
-//            if(k == t){
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-
     //LVALUE = EXPR
     //where LVALUE is obtained by visiting
     //LValue, and EXPR is obtained by visiting
@@ -114,6 +102,7 @@ public class CodeGenerator implements ASTVisitor {
         LValue lv = statementAssign.getLv(); //lv is left hand side
         Expr e = statementAssign.getE(); //e is right hand side
         Type lvType = lv.getIdent().getDef().getType();
+
 
         //if the left hand side is not an image, visit it.
         if(lvType != Type.IMAGE){
@@ -136,7 +125,7 @@ public class CodeGenerator implements ASTVisitor {
 
             }
 
-             if(lvType == Type.IMAGE && lv.getPixelSelector() == null && lv.getColor() == null){
+            else if(lvType == Type.IMAGE && lv.getPixelSelector() == null && lv.getColor() == null){
 
                 if(e.getType() == Type.STRING){
                     code.append("ImageOps.copyInto(FileURLIO.readImage(");
@@ -153,6 +142,8 @@ public class CodeGenerator implements ASTVisitor {
                     code.append(")");
                 }
                 else if(e.getType() == Type.PIXEL){
+                    lv.visit(this, arg);
+                    code.append(" = ");
                     code.append("ImageOps.setAllPixels(");
                     code.append(lv.visit(this, arg));
                     code.append(", ");
@@ -163,13 +154,13 @@ public class CodeGenerator implements ASTVisitor {
                     e.visit(this, arg);
                 }
 
-             }
-             else if(lvType == Type.IMAGE && lv.getPixelSelector() != null && lv.getColor() == null){
+            }
+            else if(lvType == Type.IMAGE && lv.getPixelSelector() != null && lv.getColor() == null){
 
-             }
-             else{
+            }
+            else{
                 e.visit(this, arg);
-             }
+            }
         }
 
 
