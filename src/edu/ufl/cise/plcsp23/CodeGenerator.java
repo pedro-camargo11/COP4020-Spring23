@@ -315,12 +315,27 @@ public class CodeGenerator implements ASTVisitor {
             if (nameDef.getType() == Type.IMAGE) //cases where NameDef is a IMAGE
             {
                 //case where initializer is a string
-                if (e.getType() == Type.STRING)
+                if (e.getType() == Type.STRING && nameDef.getDimension() == null)
                 {
                     code.append("FileURLIO.readImage(");
                     e.visit(this,arg);
                     code.append(")");
                     return "";
+                }
+                else if (e.getType() == Type.IMAGE && nameDef.getDimension() == null)
+                {
+                    code.append("ImageOps.cloneImage(");
+                    e.visit(this,arg);
+                    code.append(")");
+                    return "";
+                }
+                else if (nameDef.getDimension() != null)
+                {
+                    code.append("ImageOps.makeImage(");
+                    code.append(nameDef.getDimension().getWidth().visit(this,arg));
+                    code.append(", ");
+                    code.append(nameDef.getDimension().getHeight().visit(this,arg));
+                    code.append(")");
                 }
                 else{
                     e.visit(this,arg);
