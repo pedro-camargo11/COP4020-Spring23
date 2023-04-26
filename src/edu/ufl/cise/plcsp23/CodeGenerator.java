@@ -94,16 +94,16 @@ public class CodeGenerator implements ASTVisitor {
     }
 
     //isKind for Binary Expression Checking in the future
-    protected boolean isKind(IToken.Kind t,IToken.Kind... kinds){
-
-        for(IToken.Kind k:kinds){
-
-            if(k == t){
-                return true;
-            }
-        }
-        return false;
-    }
+//    protected boolean isKind(IToken.Kind t,IToken.Kind... kinds){
+//
+//        for(IToken.Kind k:kinds){
+//
+//            if(k == t){
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     //LVALUE = EXPR
     //where LVALUE is obtained by visiting
@@ -116,7 +116,17 @@ public class CodeGenerator implements ASTVisitor {
 
         lv.visit(this, arg);
         code.append(" = ");
-        e.visit(this, arg);
+
+        if (lv.getIdent().getDef().getType() == Type.STRING && e.getType() == Type.INT)
+        {
+            code.append("Integer.toString(");
+            e.visit(this,arg);
+            code.append(")");
+            return "";
+        }
+        else{
+            e.visit(this, arg);
+        }
 
         return " \n";
         //throw new RuntimeException("visitAssignmentStatement not implemented");
@@ -290,6 +300,7 @@ public class CodeGenerator implements ASTVisitor {
                 code.append(")");
                 return "";
             }
+
             if (nameDef.getType() == Type.IMAGE) //cases where NameDef is a IMAGE
             {
                 //case where initializer is a string

@@ -368,6 +368,7 @@ public class TypeCheck implements ASTVisitor {
             throw new TypeCheckException("Type mismatch in Ident" + ident.getFirstToken().getSourceLocation().column());
         }
         else{
+            ident.setDef(symbolTable.lookup(ident.getName())); //set the namedef
             ident.setJavaName(symbolTable.lookup(ident.getName()).getIdent().getJavaName());
         }
 
