@@ -177,6 +177,17 @@ public class CodeGenerator implements ASTVisitor {
                 code.append(right.visit(this, arg));
                 code.append(")");
             }
+            else if (left.getType() == Type.PIXEL && right.getType()== Type.INT)
+            {
+                code.append("ImageOps.binaryPackedPixelIntOp(");
+                code.append("ImageOps.OP.");
+                code.append(op.name());
+                code.append(", ");
+                code.append(left.visit(this, arg));
+                code.append(", ");
+                code.append(right.visit(this, arg));
+                code.append(")");
+            }
             else
             {
                 throw new RuntimeException("visitBinaryExpr IMAGE/PIXEL error");
