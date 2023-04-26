@@ -4,6 +4,7 @@ import edu.ufl.cise.plcsp23.ast.*;
 import java.util.Random;
 import java.util.List;
 import edu.ufl.cise.plcsp23.runtime.ConsoleIO;
+import edu.ufl.cise.plcsp23.runtime.ImageOps;
 
 //Do not use code.append when returning otherwise it will return the entire code
 public class CodeGenerator implements ASTVisitor {
@@ -156,6 +157,54 @@ public class CodeGenerator implements ASTVisitor {
 
             }
             else if(lvType == Type.IMAGE && lv.getPixelSelector() != null && lv.getColor() == null){
+                Expr height = lv.getIdent().getDef().getDimension().getHeight();
+                Expr width =  lv.getIdent().getDef().getDimension().getWidth();
+                String lvName = lv.getIdent().getJavaName();
+                code.append("for(int y = 0; y <");
+                code.append(height.visit(this, arg));
+                code.append("; y++){\n");
+                code.append("for(int x = 0; x <");
+                code.append(width.visit(this, arg));
+                code.append("; x++){\n");
+                code.append("ImageOps.setRGB(");
+                code.append(lvName);
+                code.append(", x, y,");
+                code.append(e.visit(this, arg));
+                code.append(");\n");
+                code.append("}\n");
+                code.append("}\n");
+            }
+            else if(lvType == Type.IMAGE && lv.getPixelSelector() != null && lv.getColor() != null){
+                Expr height = lv.getIdent().getDef().getDimension().getHeight();
+                Expr width =  lv.getIdent().getDef().getDimension().getWidth();
+                String lvName = lv.getIdent().getJavaName();
+                String setColor = "";
+                switch(lv.getColor()){
+                    case red ->  setColor= "setRed";
+                    case grn -> setColor = "setGrn";
+                    case blu -> setColor = "setBlu";
+
+                }
+                code.append("for(int y = 0; y <");
+                code.append(height.visit(this, arg));
+                code.append("; y++){\n");
+                code.append("for(int x = 0; x <");
+                code.append(width.visit(this, arg));
+                code.append("; x++){\n");
+                code.append("ImageOps.setRGB(");
+                code.append(lvName);
+                code.append(", x, y,");
+                code.append("PixelOps.");
+                code.append(setColor);
+                code.append("(");
+                code.append("ImageOps.getRGB(");
+                code.append(lvName);
+                code.append(", x, y),");
+                code.append(e.visit(this, arg));
+                code.append(")");
+                code.append(");\n");
+                code.append("}\n");
+                code.append("}\n");
 
             }
             else{
@@ -337,165 +386,84 @@ public class CodeGenerator implements ASTVisitor {
         NameDef nameDef = declaration.getNameDef();
         nameDef.visit(this, arg);
 
-        if(declaration.getInitializer() != null){
+        Expr e = declaration.getInitializer();
+
+        if(e != null) {
             code.append(" = ");
-            Expr e = declaration.getInitializer();
-
-            if (nameDef.getType() == Type.STRING && e.getType() == Type.INT)
-            {
-                code.append("Integer.toString(");
-                e.visit(this,arg);
-                code.append(")");
-                return "";
-            }
-
-            if (nameDef.getType() == Type.IMAGE) //cases where NameDef is a IMAGE
-            {
-                //case where initializer is a string
-                if (e.getType() == Type.STRING && nameDef.getDimension() == null)
-                {
-                    code.append("FileURLIO.readImage(");
-                    e.visit(this,arg);
-                    code.append(")");
-                    return "";
-                }
-                else if (e.getType() == Type.IMAGE && nameDef.getDimension() == null)
-                {
-                    code.append("ImageOps.cloneImage(");
-                    e.visit(this,arg);
-                    code.append(")");
-                    return "";
-                }
-                else if (nameDef.getDimension() != null)
-                {
-                    code.append("ImageOps.makeImage(");
-                    code.append(nameDef.getDimension().getWidth().visit(this,arg));
-                    code.append(", ");
-                    code.append(nameDef.getDimension().getHeight().visit(this,arg));
-                    code.append(")");
-                }
-                else{
-                    e.visit(this,arg);
-                    return "";
-                }
-            }
-            else if (nameDef.getType() == Type.PIXEL) //cases where NameDef is a PIXEL
-            {
-                //case where the initializer is a PIXEL
-//                if (e instanceof ExpandedPixelExpr)
-//                {
-//                    Expr r = ((ExpandedPixelExpr) e).getRedExpr();
-//                    Expr g = ((ExpandedPixelExpr) e).getGrnExpr();
-//                    Expr b = ((ExpandedPixelExpr) e).getBluExpr();
-//                    //need to extract rgb calues as ints and append to pixel ops pack
-//                    code.append("PixelOps.pack(");
-//                    code.append(r.visit(this,arg));
-//                    code.append(", ");
-//                    code.append(g.visit(this,arg));
-//                    code.append(", ");
-//                    code.append(b.visit(this,arg));
-//                    code.append(")");
-//                    return "";
-//
-//                }
-//                else {
-//                    e.visit(this,arg);
-//                }
-
-                e.visit(this,arg);
-                return "";
-
-            }
-            else
-            {
-                e.visit(this,arg);
-                return "";
-            }
         }
-        else if (declaration.getInitializer() == null && nameDef.getType() == Type.IMAGE && nameDef.getDimension() != null)
-        {
-            code.append(" = ImageOps.makeImage(");
-            code.append(nameDef.getDimension().getWidth().visit(this,arg));
-            code.append(", ");
-            code.append(nameDef.getDimension().getHeight().visit(this,arg));
+
+        if (nameDef.getType() == Type.STRING && (e != null ? e.getType() : null) == Type.INT) {
+
+            code.append("Integer.toString(");
+            e.visit(this, arg);
             code.append(")");
             return "";
         }
-        return " ";
-        //throw new RuntimeException("visitDeclaration not implemented");
-    }
+        if(declaration.getNameDef().getType() == Type.IMAGE) {
 
-    //VISIT DEC FOR A6
-//    @Override
-//    public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
-//        NameDef nameDef = declaration.getNameDef();
-//        nameDef.visit(this, arg);
-//
-//        if(declaration.getInitializer() != null){
-//
-//            code.append(" = ");
-//            Expr e = declaration.getInitializer();
-//
-//            if (nameDef.getType() == Type.STRING && e.getType() == Type.INT)
-//            {
-//                code.append("Integer.toString(");
-//                e.visit(this,arg);
-//                code.append(")");
-//            }
-//            else if (nameDef.getType() == Type.IMAGE) // type is image
-//            {
-//                //if dimension is null, size is determined from the initializer
-//                if (nameDef.getDimension() == null)
-//                {
-//                    //if Initializer is a String, it is the url of a file name
-//                    //use FileURLIO.readimage (like cg20)
-//                    if (e.getType() == Type.STRING)
-//                    {
-//                        code.append("FileURLIO.readImage(");
-//                        e.visit(this,arg);
-//                        code.append(")");
-//                    }
-//                    //if Initializer has a type image, use ImageOps.cloneImage
-//                    else if (e.getType() == Type.IMAGE)
-//                    {
-//                        code.append("ImageOps.cloneImage(");
-//                        e.visit(this,arg);
-//                        code.append(")");
-//                    }
-//                }
-//                else // (nameDef.getDimension() != null) create image with the specified dimensions
-//                {
-//                    //default pixel values are ff000000
-//                    code.append("new Image("); // IDK if this is right
-//                    nameDef.getDimension().visit(this,arg);
-//                    code.append(")");
-//                }
-//            }
-//            else if (e.getType() == Type.STRING) // if initializer is image use readImage overload with size paramaters
-//            {
-//
-//            }
-//            else if (e.getType() == Type.IMAGE) // if initializer is image use copyAndResize
-//            {
-//
-//            }
-//            else //regular
-//            {
-//                e.visit(this,arg);
-//            }
-//        }
-//        else // (declaration.getInitializer() == null)
-//        {
-//            //if no initializer, use ImageOps.makeImage
-//            //makeImage(int width, int height)
-//            code.append("ImageOps.makeImage(");
-//            nameDef.getDimension().visit(this,arg); // may have to change where this is
-//            code.append(")");
-//        }
-//
-//        return " ";
-//        //throw new RuntimeException("visitDeclaration not implemented");
-//    }
+            if (nameDef.getDimension() == null) {
+
+                if (e.getType() == Type.STRING) {
+                    code.append("FileURLIO.readImage(");
+                    e.visit(this, arg);
+                    code.append(")");
+                    return "";
+                } else if (e.getType() == Type.IMAGE) {
+                    code.append("ImageOps.cloneImage(");
+                    e.visit(this, arg);
+                    code.append(")");
+                    return "";
+                }
+            } else {
+
+                //no initializer
+                if (declaration.getInitializer() == null) {
+                    code.append("=");
+                    code.append("ImageOps.makeImage(");
+                    code.append(nameDef.getDimension().visit(this, arg));
+                    code.append(")");
+                    return "";
+
+                }
+                //initializer is a string
+                else if (declaration.getInitializer().getType() == Type.STRING) {
+                    code.append("FileURLIO.readImage(");
+                    e.visit(this, arg);
+                    code.append(", ");
+                    code.append(nameDef.getDimension().visit(this, arg));
+                    code.append(")");
+                    return "";
+                }
+                //initializer is a image
+                else if (declaration.getInitializer().getType() == Type.IMAGE) {
+                    code.append("ImageOps.copyAndResize(");
+                    code.append(e.visit(this, arg));
+                    code.append(", ");
+                    code.append(nameDef.getDimension().getWidth().visit(this, arg));
+                    code.append(", ");
+                    code.append(nameDef.getDimension().getHeight().visit(this, arg));
+                    code.append(")");
+                    return "";
+                } else if (declaration.getInitializer().getType() == Type.PIXEL) {
+                    code.append("ImageOps.setAllPixels(ImageOps.makeImage(");
+                    code.append(nameDef.getDimension().visit(this, arg));
+                    code.append("), ");
+                    code.append(e.visit(this, arg));
+                    code.append(")");
+                    return "";
+                } else {
+                    code.append(e.visit(this, arg));
+                    return "";
+                }
+            }
+        }
+        else if(declaration.getInitializer() != null){
+            code.append(e.visit(this, arg));
+            return "";
+        }
+
+        return "";
+    }
 
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
