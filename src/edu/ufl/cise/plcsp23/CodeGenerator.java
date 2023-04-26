@@ -25,8 +25,8 @@ public class CodeGenerator implements ASTVisitor {
             case INT -> {typeString = "int";}
             case STRING -> {typeString = "String";}
             case VOID -> {typeString = "void";}
-            //case PIXEL -> {typeString = "Pixel";}
-            //case IMAGE -> {typeString = "Image";}
+            case PIXEL -> {typeString = "int";}
+            case IMAGE -> {typeString = "BufferedImage";}
             default -> throw new RuntimeException ("error in CodeGenerator.visitProgram, unexpected type " + type);
         }
         return typeString;
@@ -230,8 +230,7 @@ public class CodeGenerator implements ASTVisitor {
 
         return "";
     }
-
-    //all declarations have to be unique. implement a check for that with a set
+    //OLD VISIT DEC
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         NameDef nameDef = declaration.getNameDef();
@@ -247,6 +246,17 @@ public class CodeGenerator implements ASTVisitor {
                 e.visit(this,arg);
                 code.append(")");
             }
+            //cases where NameDef is a pixel
+            if (nameDef.getType() == Type.IMAGE)
+            {
+                //case where initializer is a string
+                if (e.getType() == Type.STRING)
+                {
+                    code.append("FileURLIO.readImage(");
+                    e.visit(this,arg);
+                    code.append(")");
+                }
+            }
             else
             {
                 e.visit(this,arg);
@@ -257,9 +267,90 @@ public class CodeGenerator implements ASTVisitor {
         //throw new RuntimeException("visitDeclaration not implemented");
     }
 
+    //VISIT DEC FOR A6
+//    @Override
+//    public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
+//        NameDef nameDef = declaration.getNameDef();
+//        nameDef.visit(this, arg);
+//
+//        if(declaration.getInitializer() != null){
+//
+//            code.append(" = ");
+//            Expr e = declaration.getInitializer();
+//
+//            if (nameDef.getType() == Type.STRING && e.getType() == Type.INT)
+//            {
+//                code.append("Integer.toString(");
+//                e.visit(this,arg);
+//                code.append(")");
+//            }
+//            else if (nameDef.getType() == Type.IMAGE) // type is image
+//            {
+//                //if dimension is null, size is determined from the initializer
+//                if (nameDef.getDimension() == null)
+//                {
+//                    //if Initializer is a String, it is the url of a file name
+//                    //use FileURLIO.readimage (like cg20)
+//                    if (e.getType() == Type.STRING)
+//                    {
+//                        code.append("FileURLIO.readImage(");
+//                        e.visit(this,arg);
+//                        code.append(")");
+//                    }
+//                    //if Initializer has a type image, use ImageOps.cloneImage
+//                    else if (e.getType() == Type.IMAGE)
+//                    {
+//                        code.append("ImageOps.cloneImage(");
+//                        e.visit(this,arg);
+//                        code.append(")");
+//                    }
+//                }
+//                else // (nameDef.getDimension() != null) create image with the specified dimensions
+//                {
+//                    //default pixel values are ff000000
+//                    code.append("new Image("); // IDK if this is right
+//                    nameDef.getDimension().visit(this,arg);
+//                    code.append(")");
+//                }
+//            }
+//            else if (e.getType() == Type.STRING) // if initializer is image use readImage overload with size paramaters
+//            {
+//
+//            }
+//            else if (e.getType() == Type.IMAGE) // if initializer is image use copyAndResize
+//            {
+//
+//            }
+//            else //regular
+//            {
+//                e.visit(this,arg);
+//            }
+//        }
+//        else // (declaration.getInitializer() == null)
+//        {
+//            //if no initializer, use ImageOps.makeImage
+//            //makeImage(int width, int height)
+//            code.append("ImageOps.makeImage(");
+//            nameDef.getDimension().visit(this,arg); // may have to change where this is
+//            code.append(")");
+//        }
+//
+//        return " ";
+//        //throw new RuntimeException("visitDeclaration not implemented");
+//    }
+
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
-       throw new RuntimeException("visitDimension not implemented");
+        //Generate comma separated code to evaluate the two expressions
+        Expr width = dimension.getWidth();
+        Expr height = dimension.getHeight();
+
+        width.visit(this, arg);
+        code.append(", ");
+        height.visit(this, arg);
+
+        return " ";
+       //throw new RuntimeException("visitDimension not implemented");
     }
 
     @Override
@@ -335,6 +426,11 @@ public class CodeGenerator implements ASTVisitor {
 
         String name = program.getIdent().getName();
         code.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
+        code.append("import edu.ufl.cise.plcsp23.runtime.FileURLIO; \n");
+        code.append("import edu.ufl.cise.plcsp23.runtime.ImageOps; \n");
+        code.append("import edu.ufl.cise.plcsp23.runtime.PixelOps; \n");
+        code.append("import edu.ufl.cise.plcsp23.runtime.PLCRuntimeException; \n");
+        code.append("import java.awt.image.BufferedImage;");
         code.append("public class ");
         code.append(name);
         code.append(" { \n");
@@ -413,8 +509,104 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitUnaryExprPostFix(UnaryExprPostfix unaryExprPostfix, Object arg) throws PLCException {
-        throw new RuntimeException("CodeGenerator.visitUnaryExprPostFix not yet implemented");
+        Expr primaryExpr = unaryExprPostfix.getPrimary();
+
+        if (primaryExpr.getType() == Type.IMAGE)
+        {
+            // case with pixel selector only
+            if (unaryExprPostfix.getPixel() != null && unaryExprPostfix.getColor() == null)
+            {
+                //PrimayExpr PixelSelector ε
+                // Use ImageOps.getRGB
+                //Example
+                // a[x,y]
+                // ImageOps.getRGB(a,x,y)
+                code.append("ImageOps.getRGB(");
+                Expr pixelX = unaryExprPostfix.getPixel().getX();
+                Expr pixelY = unaryExprPostfix.getPixel().getY();
+                code.append(primaryExpr.visit(this, arg));
+                code.append(", ");
+                code.append(pixelX.visit(this, arg));
+                code.append(", ");
+                code.append(pixelY.visit(this, arg));
+                code.append(")");
+            }
+            //case with pixel selector and color channel
+            else if (unaryExprPostfix.getPixel() != null && unaryExprPostfix.getColor() != null)
+            {
+                //Use PixelOps method to get color from pixel
+                //and ImageOps.getRGB
+                //Example:
+                // a[x,y]:red
+                // PixelOps.red(ImageOps.getRGB(a,x,y)
+                //see test cg6_1
+                Expr pixelX = unaryExprPostfix.getPixel().getX();
+                Expr pixelY = unaryExprPostfix.getPixel().getY();
+                ColorChannel color = unaryExprPostfix.getColor();
+
+                code.append("PixelOps.");
+                code.append(color.name()); //not sure if this is correct
+                code.append("(ImageOps.getRGB(");
+                code.append(primaryExpr.visit(this, arg));
+                code.append(", ");
+                code.append(pixelX.visit(this, arg));
+                code.append(", ");
+                code.append(pixelY.visit(this, arg));
+                code.append("))");
+
+            }
+            //case with color channel only
+            else if (unaryExprPostfix.getPixel() == null && unaryExprPostfix.getColor() != null)
+            {
+                // Use ImageOps extract routine
+                //Example:
+                // a:red
+                // ImageOps.extractRed(a)
+
+                ColorChannel color = unaryExprPostfix.getColor();
+                code.append("ImageOps.extract");
+                if (color.name().equals("red"))
+                {
+                    code.append("Red(");
+                }
+                else if (color.name().equals("green"))
+                {
+                    code.append("Grn(");
+                }
+                else
+                {
+                    code.append("Blu(");
+                }
+                code.append(primaryExpr.visit(this, arg));
+                code.append(")");
+
+            }
+            else{
+                throw new RuntimeException("CodeGenerator.visitUnaryExprPostFix error");
+            }
+        }
+        else if (primaryExpr.getType() == Type.PIXEL)
+        {
+            //PrimaryExpr ChannelSelector
+            // Use PixelOps red,grn, or blu
+            //Example:
+            // a:red
+            // PixelOps.red(a)
+
+            ColorChannel color = unaryExprPostfix.getColor();
+            code.append("PixelOps.");
+            code.append(color.name());
+            code.append("(");
+            code.append(primaryExpr.visit(this, arg));
+            code.append(")");
+        }
+        else {
+            throw new RuntimeException("CodeGenerator.visitUnaryExprPostFix error");
+        }
+
+    return " ";
     }
+
 
     //If your input program has redeclared an
     //identifier in the inner scope, a straightforward
