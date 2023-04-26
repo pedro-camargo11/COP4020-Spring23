@@ -132,52 +132,91 @@ public class CodeGenerator implements ASTVisitor {
         IToken.Kind op = binaryExpr.getOp();
         Expr right = binaryExpr.getRight();
 
-        switch(op){
-
-            case PLUS -> {
-                code.append(left.visit(this, arg));
-                code.append(" + ");
-                code.append(right.visit(this, arg));
-            }
-
-            case MINUS -> {
-                code.append(left.visit(this, arg));
-                code.append(" - ");
-                code.append(right.visit(this, arg));
-            }
-
-            case TIMES -> {
-                code.append(left.visit(this, arg));
-                code.append(" * ");
-                code.append(right.visit(this, arg));
-            }
-
-            case DIV -> {
-                code.append(left.visit(this, arg));
-                code.append(" / ");
-                code.append(right.visit(this, arg));
-            }
-
-            case MOD -> {
-                code.append(left.visit(this, arg));
-                code.append(" % ");
-                code.append(right.visit(this, arg));
-            }
-
-            case EXP -> {
-                code.insert(0, "import java.lang.Math; \n");
-                code.append("(int) Math.pow(");
+        if (left.getType() == Type.IMAGE || left.getType() == Type.PIXEL)
+        { // binary operations for IMAGES and PIXEl
+            if (left.getType() == Type.IMAGE && right.getType() == Type.IMAGE)
+            {
+                code.append("ImageOps.binaryImageImageOp(");
+                code.append("ImageOps.OP.");
+                code.append(op.name());
+                code.append(", ");
                 code.append(left.visit(this, arg));
                 code.append(", ");
                 code.append(right.visit(this, arg));
                 code.append(")");
             }
+            else if (left.getType() == Type.IMAGE && right.getType() == Type.INT)
+            {
+                code.append("ImageOps.binaryImageScalarOp(");
+                code.append("ImageOps.OP.");
+                code.append(op.name());
+                code.append(", ");
+                code.append(left.visit(this, arg));
+                code.append(", ");
+                code.append(right.visit(this, arg));
+                code.append(")");
+            }
+            else if (left.getType() == Type.PIXEL && right.getType() == Type.PIXEL)
+            {
+//                code.append("ImageOps.binaryImagePixelOp(");
+//                code.append("ImageOps.OP.");
+                //not implemented yet
 
-            //Need to deal with the boolean values and how that will be returned via docs.
-            case LT,GT, LE, GE, EQ, AND, OR-> {
-                convertBoolean(binaryExpr);
+            }
+            else
+            {
+                throw new RuntimeException("visitBinaryExpr IMAGE/PIXEL error");
             }
         }
+        else
+        { //regular binary operations
+            switch(op){
+
+                case PLUS -> {
+                    code.append(left.visit(this, arg));
+                    code.append(" + ");
+                    code.append(right.visit(this, arg));
+                }
+
+                case MINUS -> {
+                    code.append(left.visit(this, arg));
+                    code.append(" - ");
+                    code.append(right.visit(this, arg));
+                }
+
+                case TIMES -> {
+                    code.append(left.visit(this, arg));
+                    code.append(" * ");
+                    code.append(right.visit(this, arg));
+                }
+
+                case DIV -> {
+                    code.append(left.visit(this, arg));
+                    code.append(" / ");
+                    code.append(right.visit(this, arg));
+                }
+
+                case MOD -> {
+                    code.append(left.visit(this, arg));
+                    code.append(" % ");
+                    code.append(right.visit(this, arg));
+                }
+
+                case EXP -> {
+                    code.insert(0, "import java.lang.Math; \n");
+                    code.append("(int) Math.pow(");
+                    code.append(left.visit(this, arg));
+                    code.append(", ");
+                    code.append(right.visit(this, arg));
+                    code.append(")");
+                }
+                //Need to deal with the boolean values and how that will be returned via docs.
+                case LT,GT, LE, GE, EQ, AND, OR-> {
+                    convertBoolean(binaryExpr);
+                }
+            }
+        }
+
 
         //throw new RuntimeException("visitBinaryExpr not implemented");
 
