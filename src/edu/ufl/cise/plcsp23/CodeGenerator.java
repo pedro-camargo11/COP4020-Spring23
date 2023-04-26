@@ -246,8 +246,7 @@ public class CodeGenerator implements ASTVisitor {
                 e.visit(this,arg);
                 code.append(")");
             }
-            //cases where NameDef is a pixel
-            if (nameDef.getType() == Type.IMAGE)
+            if (nameDef.getType() == Type.IMAGE) //cases where NameDef is a IMAGE
             {
                 //case where initializer is a string
                 if (e.getType() == Type.STRING)
@@ -256,6 +255,29 @@ public class CodeGenerator implements ASTVisitor {
                     e.visit(this,arg);
                     code.append(")");
                 }
+                else{
+                    e.visit(this,arg);
+                }
+            }
+            else if (nameDef.getType() == Type.PIXEL) //cases where NameDef is a PIXEL
+            {
+                //case where the initializer is a PIXEL
+                if (e instanceof ExpandedPixelExpr)
+                {
+                    Expr r = ((ExpandedPixelExpr) e).getRedExpr();
+                    Expr g = ((ExpandedPixelExpr) e).getGrnExpr();
+                    Expr b = ((ExpandedPixelExpr) e).getBluExpr();
+                    //need to extract rgb calues as ints and append to pixel ops pack
+                    code.append("PixelOps.pack(");
+                    code.append(r.visit(this,arg));
+                    code.append(", ");
+                    code.append(g.visit(this,arg));
+                    code.append(", ");
+                    code.append(b.visit(this,arg));
+                    code.append(")");
+
+                }
+
             }
             else
             {
