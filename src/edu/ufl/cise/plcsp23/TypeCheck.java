@@ -350,7 +350,7 @@ public class TypeCheck implements ASTVisitor {
         //return true if all are ints otherwise error out.
         if(redType == Type.INT && greenType == Type.INT && blueType == Type.INT){
 
-            resultType = Type.INT;
+            resultType = Type.PIXEL;
         }
         else{
             throw new TypeCheckException("Type mismatch in ExpandedPixelExpr" + expandedPixelExpr.getFirstToken().getSourceLocation().column());
