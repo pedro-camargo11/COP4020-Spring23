@@ -362,16 +362,24 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitIdent (Ident ident, Object arg) throws PLCException {
-         ident.setJavaName(symbolTable.lookup(ident.getName()).getIdent().getJavaName());
-         return null;
+
+        //if it's null throw an error
+        if(symbolTable.lookup(ident.getName()) == null){
+            throw new TypeCheckException("Type mismatch in Ident" + ident.getFirstToken().getSourceLocation().column());
+        }
+        else{
+            ident.setJavaName(symbolTable.lookup(ident.getName()).getIdent().getJavaName());
+        }
+
+        return null;
     }
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
         String name = identExpr.getName();
         NameDef def = symbolTable.lookup(name);
-        identExpr.setJavaName(def.getIdent().getJavaName());
         if (def != null) {
+            identExpr.setJavaName(def.getIdent().getJavaName());
              identExpr.setType(def.getType());
              return def.getType();
         }
