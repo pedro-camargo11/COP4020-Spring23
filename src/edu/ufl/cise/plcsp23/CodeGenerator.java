@@ -372,6 +372,15 @@ public class CodeGenerator implements ASTVisitor {
                 return "";
             }
         }
+        else if (declaration.getInitializer() == null && nameDef.getType() == Type.IMAGE && nameDef.getDimension() != null)
+        {
+            code.append(" = ImageOps.makeImage(");
+            code.append(nameDef.getDimension().getWidth().visit(this,arg));
+            code.append(", ");
+            code.append(nameDef.getDimension().getHeight().visit(this,arg));
+            code.append(")");
+            return "";
+        }
         return " ";
         //throw new RuntimeException("visitDeclaration not implemented");
     }
