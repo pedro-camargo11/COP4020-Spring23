@@ -158,10 +158,14 @@ public class CodeGenerator implements ASTVisitor {
             }
             else if (left.getType() == Type.PIXEL && right.getType() == Type.PIXEL)
             {
-//                code.append("ImageOps.binaryImagePixelOp(");
-//                code.append("ImageOps.OP.");
-                //not implemented yet
-
+                code.append("ImageOps.binaryPackedPixelPixelOp(");
+                code.append("ImageOps.OP.");
+                code.append(op.name());
+                code.append(", ");
+                code.append(left.visit(this, arg));
+                code.append(", ");
+                code.append(right.visit(this, arg));
+                code.append(")");
             }
             else
             {
@@ -319,6 +323,9 @@ public class CodeGenerator implements ASTVisitor {
                     code.append(")");
                     return "";
 
+                }
+                else {
+                    e.visit(this,arg);
                 }
 
             }
