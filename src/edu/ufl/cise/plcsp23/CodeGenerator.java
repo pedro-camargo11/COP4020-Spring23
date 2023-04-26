@@ -245,6 +245,7 @@ public class CodeGenerator implements ASTVisitor {
                 code.append("Integer.toString(");
                 e.visit(this,arg);
                 code.append(")");
+                return "";
             }
             if (nameDef.getType() == Type.IMAGE) //cases where NameDef is a IMAGE
             {
@@ -254,9 +255,11 @@ public class CodeGenerator implements ASTVisitor {
                     code.append("FileURLIO.readImage(");
                     e.visit(this,arg);
                     code.append(")");
+                    return "";
                 }
                 else{
                     e.visit(this,arg);
+                    return "";
                 }
             }
             else if (nameDef.getType() == Type.PIXEL) //cases where NameDef is a PIXEL
@@ -275,6 +278,7 @@ public class CodeGenerator implements ASTVisitor {
                     code.append(", ");
                     code.append(b.visit(this,arg));
                     code.append(")");
+                    return "";
 
                 }
 
@@ -282,9 +286,9 @@ public class CodeGenerator implements ASTVisitor {
             else
             {
                 e.visit(this,arg);
+                return "";
             }
         }
-
         return " ";
         //throw new RuntimeException("visitDeclaration not implemented");
     }
@@ -526,7 +530,21 @@ public class CodeGenerator implements ASTVisitor {
 
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException {
-        throw new RuntimeException("CodeGenerator.visitUnaryExpr not yet implemented");
+
+        Expr primaryExpr = unaryExpr.getE();
+        IToken.Kind op = unaryExpr.getOp();
+
+        //! -> primaryExpr == 0 ? 1 : 0
+        if(op == IToken.Kind.BANG){
+            code.append(primaryExpr.visit(this, arg));
+            code.append(" == 0 ? 1 : 0");
+        }
+        else{
+            code.append("-");
+            code.append(primaryExpr.visit(this, arg));
+        }
+        //throw new RuntimeException("CodeGenerator.visitUnaryExpr not yet implemented");
+        return "";
     }
 
     @Override
